@@ -89,24 +89,6 @@ git init -q "$work/upstream"
 git -C "$work/upstream" fetch -q --depth=1 https://github.com/noire113-dev/deepseek-harness-kr.git "$commit"
 git -C "$work/upstream" checkout -q --detach FETCH_HEAD
 [[ "$(git -C "$work/upstream" rev-parse HEAD)" == "$commit" ]]
-codesign --display --entitlements - --xml "$app" > "$work/entitlements.plist"
-python3 - "$work/entitlements.plist" <<'PY'
-import plistlib,sys
-from pathlib import Path
-p=Path(sys.argv[1])
-data=p.read_bytes()
-try:
-    ent=plistlib.loads(data) if data.strip() else {}
-    if not isinstance(ent, dict):
-        raise ValueError("expected a dictionary")
-except (ValueError, plistlib.InvalidFileException) as exc:
-    sys.exit("원본 앱의 서명 권한을 XML로 읽지 못했습니다. 다운로드한 DMG는 다음 실행에서 재사용합니다.")
-# An ad-hoc outer shell loads the still vendor-signed Electron framework.
-ent["com.apple.security.cs.disable-library-validation"]=True
-ent["com.apple.security.cs.allow-jit"]=True
-ent["com.apple.security.device.audio-input"]=True
-p.write_bytes(plistlib.dumps(ent))
-PY
 python3 port.py "$app" "$work/upstream/harness/overlay" "$model"
 resources="$app/Contents/Resources"
 mkdir -p "$resources/HarnessMikuNotices"
@@ -115,8 +97,7 @@ cp "$work/upstream/LICENSE" "$work/upstream/NOTICE.md" "$resources/HarnessMikuNo
 if [[ -f "$resources/app-update.yml" ]]; then
     sed -i '' 's@^url:.*@url: https://127.0.0.1:9/dsh-update-disabled/@' "$resources/app-update.yml"
 fi
-codesign --force --sign - --options runtime --entitlements "$work/entitlements.plist" "$app"
-codesign --verify --deep --strict "$app"
+bash "$PWD/Repair-Permissions.command" --sign-staged "$app" "$work/entitlements.plist"
 [[ ! -e "$destination" ]]
 mv "$app" "$destination"
 echo "완료: $destination"
