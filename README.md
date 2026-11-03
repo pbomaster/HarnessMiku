@@ -1,12 +1,21 @@
-# Harness Miku · macOS Apple Silicon
+# Harness Miku · macOS Apple Silicon / Windows x64
 
 **제작 · pbomaster, ChatGPT(OpenAI)**
 
-DeepSeek Harness의 채팅과 작업공간에 Live2D 캐릭터를 더하는 비공식 팬 프로젝트입니다. v28 설치 키트는 기존 Harness의 모델 선택기를 사용하므로 같은 대화 UI에서 로컬 llama.cpp 모델이나 사용자가 등록한 클라우드 모델을 선택할 수 있습니다.
+DeepSeek Harness의 채팅과 작업공간에 Live2D 캐릭터를 더하는 비공식 팬 프로젝트입니다. v29 설치 키트는 기존 Harness의 모델 선택기를 사용하므로 같은 대화 UI에서 로컬 llama.cpp 모델이나 사용자가 등록한 클라우드 모델을 선택할 수 있습니다.
 
 ![Harness Miku 시작 화면. 중앙의 채팅 입력창과 오른쪽 아래의 미쿠](docs/preview.webp)
 
-## 준비와 설치
+[Mac 설치 키트](https://github.com/pbomaster/HarnessMiku/raw/refs/heads/main/dist/HarnessMiku-Mac-v29.zip) · [Windows x64 설치 키트](https://github.com/pbomaster/HarnessMiku/raw/refs/heads/main/dist/HarnessMiku-Windows-x64-v29.zip)
+
+## Windows x64 설치
+
+1. Windows용 DeepSeek Harness **0.2.1-rc.5 x64** 원본을 설치하고 종료하세요. Python 3.12 이상(Windows py 실행기 포함)과 Git이 필요합니다.
+2. 공식 Ko-fi에서 받은 모델 ZIP을 설치 키트 옆에 두고 `Install-Windows.cmd`를 실행하세요. 원본 설치 경로가 다르면 명령 프롬프트에서 `Install-Windows.cmd "원본 폴더"`로 지정합니다.
+3. 완성된 앱은 `%LOCALAPPDATA%\Programs\Harness Miku\DeepSeek Harness.exe`입니다. 원본 프로그램과 번갈아 실행하세요. 기존 데이터와 계정을 사용할 수 있습니다.
+4. 한국어·영어 받아쓰기는 키트에서 `Install-Windows.cmd --speech`를 한 번 실행해 추가합니다. Fish 낭독을 사용하려면 첫 사용 시 Windows 사용자 환경 변수 FISH_API_KEY를 지정하고 앱을 다시 여세요. 저장에는 Electron의 Windows 사용자 계정 암호화를 사용합니다.
+
+## macOS 준비와 설치
 
 1. macOS 13 이상의 Apple Silicon Mac에서 진행하세요.
 2. 제작자의 [공식 Ko-fi 배포 페이지](https://ko-fi.com/s/7bb9ac0243)에서 이용 조건을 읽고 원본 모델 ZIP을 직접 받으세요. `New1007-RetrynowMiku.zip`을 이 키트의 `Install.command` 옆에 두거나 설치 중 파일 선택 창에서 지정하세요.
@@ -19,6 +28,10 @@ Python 3 또는 Git이 없으면 설치기가 Apple 개발자 도구 설치 창�
 ## 설치 후 설정
 
 대화할 모델을 어디에서 실행할지 선택하세요. 클라우드 제공자의 키가 있다면 [클라우드 API 설정](#클라우드-api-설정)으로, Mac에서 GGUF 모델을 실행하려면 [로컬 AI 설정](#로컬-ai-설정)으로 이동하세요. 어느 쪽이든 Fish Audio는 음성 낭독을 원할 때만 따로 설정하면 됩니다.
+
+### DeepSeek 계정으로 로그인
+
+**설정 → 모델**의 아래쪽 DeepSeek 계정 영역에서 **로그인**을 누르세요. 브라우저 인증을 마치면 같은 영역에 계정 상태가 표시됩니다. 계정에서 제공하는 모델은 새 세션의 모델 선택기에서 선택하세요. 기존에 저장한 API 키나 로컬 제공자도 계속 선택할 수 있습니다.
 
 ### 클라우드 API 설정
 
@@ -67,6 +80,8 @@ llama-server -m "/경로/model.gguf" --host 127.0.0.1 --port 8080 --alias local-
 - DeepSeek 키는 Harness의 자격 증명 저장소가 관리합니다. 설정·세션·자격 증명 파일이나 진단 로그를 공개 이슈에 첨부하지 마세요. Fish 키를 교체하려면 앱 종료 후 `~/Library/Application Support/Harness Miku/Credentials/fish-key.enc`를 삭제하고 다시 입력하세요. 환경 변수로 지정했다면 그 값도 갱신하세요.
 
 ## macOS 권한 복구
+
+이 빌드는 전용 앱 ID와 키체인의 코드 서명 인증서를 사용합니다. 인증서가 없는 Mac에서 처음 설치하면 임시 서명을 사용하므로 다음 빌드에서 재승인이 필요할 수 있습니다. 유효한 인증서가 하나면 자동 선택하며 여러 개라면 설치·복구 때 같은 인증서를 `MIKU_SIGN_IDENTITY` 환경 변수로 지정하세요. 기존 임시 서명에서 처음 전환할 때는 새 Harness Miku에 권한을 한 번 부여해야 합니다. 작업 모드에서 Apple Events나 녹화가 거절되면 하네스가 해당 명령에 한해 전체 접근을 요청할 수 있습니다.
 
 기존 v28 앱에서 자동화나 시스템 오디오 접근이 실패하면 앱을 완전히 종료하고 이 키트의 `Repair-Permissions.command`를 실행하세요. 기본 대상은 `~/Applications/Harness Miku.app`이며 다른 위치라면 앱 경로를 첫 인수로 전달하세요. 도구가 복사본을 수정하고 서명을 검증한 후 원래 위치에 배치하며 원본은 옆에 백업합니다. 다시 실행하여 자동화와 화면 및 시스템 오디오 녹음을 각각 확인하세요. 재서명 후 macOS에서 승인을 다시 요청할 수 있습니다. 자동화는 제어할 대상 앱마다 승인이 필요합니다.
 

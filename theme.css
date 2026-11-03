@@ -185,3 +185,12 @@ html.miku-desktop .wtg9ga_root {display:none!important}
 html.miku-desktop #dsc-stage[data-miku-drop] {outline:2px solid #369d94;outline-offset:-2px;border-radius:12px;background:#d6fff32e}
 .miku-prompt {box-sizing:border-box;max-width:calc(100vw - 24px);max-height:calc(100vh - 24px);overflow:auto}
 #miku-options input:not([type="checkbox"]),.miku-prompt textarea {box-sizing:border-box;max-width:100%;min-width:0}
+
+/* Keep all Harness controls, including portals, above the companion in chat. */
+html:not(.miku-desktop) body,
+html:not(.miku-desktop) #root {isolation:isolate}
+html:not(.miku-desktop) body::before {z-index:-5}
+html:not(.miku-desktop) #miku-intro-veil {z-index:-4!important;pointer-events:none!important}
+html:not(.miku-desktop) #dsc-stage {z-index:-3}
+html:not(.miku-desktop) #dsc-bubble {z-index:-2}
+html:not(.miku-desktop) #miku-pinned-recap {z-index:-1}

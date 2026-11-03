@@ -13,7 +13,7 @@ def adapt_prompt(js):
     pattern=r"""super\(\s*([\w$]+)\s*,\s*["']systemPrompt["']\s*\)\s*;?"""
     addition=""";
         this.section({name:"miku:user-default",order:10210,interpolate:false,text:()=>{
-          try {return mikuRead(mikuJoin(mikuHome(),"Library","Application Support","Harness Miku","system-prompt.txt"),"utf8");}
+          try {return mikuRead(mikuJoin(process.platform==="win32" ? (process.env.APPDATA || mikuJoin(mikuHome(),"AppData","Roaming")) : mikuJoin(mikuHome(),"Library","Application Support"),"Harness Miku","system-prompt.txt"),"utf8");}
           catch(error){if(error.code==="ENOENT")return "";throw error;}
         }});
 """
@@ -25,6 +25,13 @@ def adapt_prompt(js):
     rule+=" 요약 닫는 표지 바로 뒤에 <!--miku-tone:TAG-->를 하나 붙여 마쳐라. TAG는 이번 요약의 의미에 맞는 Drama 3 연기 태그 이름 하나로 바꿔라. " + " ".join(f"{key} = {value}" for key,value in tones.items())
     rule+=" 표지 안 요약에는 실제로 입 밖에 낼 말만 써라. 연기 설명, 괄호 지문, 태그, 필드 이름은 대사에 넣지 마라. 예: <!--miku-recap-->첫 번째 파일은 돌아왔어. 두 번째 칸은 아직 비워 둘게.<!--/miku-recap--><!--miku-tone:slow-->"
     addition+='this.section({name:"miku:bubble-format",order:10211,interpolate:false,text:'+json.dumps(rule,ensure_ascii=False)+'});'
+    mac_tools = ("On macOS, the confined bash shell may reject Apple Events (-10004) and screen capture "
+                 "even when macOS has granted Harness Miku access. For a requested app-control or screen/system-audio "
+                 "capture that fails under confinement, retry only the affected command using bash with "
+                 "sandbox_permissions=danger-full-access and a specific justification via the normal approval flow. "
+                 "If that call still fails, check Automation for the specific target or Screen & System Audio Recording "
+                 "for Harness Miku, as appropriate. Do not reset grants or re-sign the running app.")
+    addition+='this.section({name:"miku:mac-permissions",order:10212,interpolate:false,text:process.platform==="darwin"?'+json.dumps(mac_tools)+':""});'
     js,n=re.subn(pattern,lambda m:m.group()+addition,js)
     if n!=1: raise ValueError("Harness 시스템 프롬프트 생성자를 식별하지 못했습니다.")
     return 'import {readFileSync as mikuRead} from "node:fs";\nimport {homedir as mikuHome} from "node:os";\nimport {join as mikuJoin} from "node:path";\n'+js
@@ -33,6 +40,20 @@ def adapt_prompt(js):
 def adapt_ui(overlay,dest):
     shutil.copyfile(KIT/"miku-mark.svg",dest/"miku-mark.svg")
     def module(name):return overlay/MODULES/("dsh-client-ui-"+name)/"lib/client.js"
+    # Render the upstream account component with its own auth service and locale.
+    account=module("settings-account")
+    source=account.read_text()
+    anchor='ctx.slots.inject("settings.models.sign-in",'
+    if source.count(anchor)!=1:
+        raise ValueError("지원하지 않는 계정 설정 모듈")
+    source=source.replace(anchor,'''ctx.slots.inject("settings.models.footer", () => ctx.slots.register({
+                name: "settings.models.footer",
+                id: "miku.deepseek-account",
+                locale: "settings.account",
+                inject: () => operations
+            }, AccountSection));
+            '''+anchor)
+    account.write_text(source)
     sidebar=module("sidebar")
     js=sidebar.read_text()
     def logo(size):
@@ -116,8 +137,25 @@ def adapt_ui(overlay,dest):
 
 def adapt_bubble(js):
     js=js.replace("      let curK =",(KIT/"pinned-recap.js").read_text()+"\n      let curK =")
-    js=js.replace("if (e.button !== 0) return;", "if (e.button !== 0 || e.target.closest?.('#miku-pinned-recap,#miku-pet-dock,html.miku-desktop .dsc-composer')) return;")
+    js=js.replace('veil.style.cssText =', 'veil.id="miku-intro-veil"; veil.style.cssText =')
+    # In chat, react only to a completed click on exposed background. Never cancel
+    # Harness input. The floating pet retains its original model hit testing.
+    js=js.replace("      let swallowClick = false;", """      document.addEventListener("click", e => {
+        if (document.documentElement.classList.contains("miku-desktop") ||
+            e.defaultPrevented || e.button !== 0 || !mikuChatBackdrop(e.target)) return;
+        if (!pinnedRecap.hidden && document.elementsFromPoint(e.clientX,e.clientY).includes(pinnedRecap)) {
+          clearRecap();
+          return;
+        }
+        if (intro.phase === "center") { intro.skip = true; return; }
+        const hit = hitAt(e.clientX, e.clientY);
+        if (hit) onTouch(...hit);
+      });
+      let swallowClick = false;""")
+    js=js.replace("if (e.button !== 0) return;", """if (!document.documentElement.classList.contains("miku-desktop") ||
+            e.button !== 0 || e.target.closest?.("#miku-pinned-recap,#miku-pet-dock,.dsc-composer")) return;""")
     js=js.replace('if (now - hoverCheck < 80) return;', 'if (!document.documentElement.classList.contains("miku-desktop") && now - hoverCheck < 80) return;')
+    js=js.replace('const over = !!hitAt(e.clientX, e.clientY);', 'const over = (document.documentElement.classList.contains("miku-desktop") || mikuChatBackdrop(e.target)) && !!hitAt(e.clientX, e.clientY);')
     # Remove the upstream reasoning-DOM reader and its observer call entirely.
     a=js.index("      // 추론 혼잣말:")
     b=js.index("      // 시작 인사",a)

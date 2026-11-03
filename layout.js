@@ -72,3 +72,12 @@ function mikuPlaceBubble(bubble, width, height, headTop, centerX, card, lane=nul
   bubble.style.left = left + "px";
   bubble.style.top = Math.max(ceiling, Math.min(top, height - h - gap)) + "px";
 }
+
+// Only bare layout surfaces can relay a chat click to the background character.
+// Match the surface itself. Descendant controls and portal contents own their input.
+function mikuChatBackdrop(target) {
+  return target instanceof Element && (
+    target.matches("html,body,#root,[data-conversation-content],[data-conversation-scroll],[data-chat-flow],[data-composer-seat]") ||
+    target.matches("#root :has([data-conversation-content]), #root :has(> .dsc-composer)")
+  );
+}

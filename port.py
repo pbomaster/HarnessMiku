@@ -26,7 +26,7 @@ def adapt_desktop(src,kit):
         if src.count(old)!=1: raise ValueError("Desktop window patch mismatch: "+old)
         src=src.replace(old,new)
     patch("async save(apiKey) {","async balanceRef(){return (await settingsAndReference()).ref;},\n        async save(apiKey) {")
-    patch("width: 1280,","transparent: process.platform === 'darwin' && primary, acceptFirstMouse:true, width: 1280,")
+    patch("width: 1280,","transparent: primary, acceptFirstMouse:true, width: 1280,")
     patch('const applyBackdrop = () => {','const applyBackdrop = () => { if(window.isAlwaysOnTop()){window.setVibrancy(null);window.setBackgroundColor("#00000000");return;}')
     patch('const shortcuts = installDesktopShortcuts(', (kit/"desktop-main.js").read_text()+'\nconst shortcuts = installDesktopShortcuts(')
     patch('if (activate) window.show();','if(mikuLoginLaunch){mikuLoginLaunch=false;mikuMode(true);window.showInactive();} else if (activate) window.show();')
@@ -246,6 +246,19 @@ def entry(header, name, create=False):
     return parent["files"], parts[-1]
 
 
+def adapt_mac_bash(script):
+    marker = "if (result.sandbox?.denied) {"
+    if script.count(marker) != 1:
+        raise ValueError("지원되지 않는 bash 도구 출력 형식")
+    # A macOS denial can come from either Seatbelt or TCC. Never retry implicitly.
+    return script.replace(marker, r'''if (process.platform === "darwin" && result.exitCode !== 0 &&
+        result.sandbox && result.sandbox.mode !== "danger-full-access" &&
+        escalationModes.includes("danger-full-access") &&
+        /execution error:[^\n]*\(-10004\)|could not create image from display/i.test(err)) {
+        markers.push("[macOS: retry the affected Apple Events or screen capture command through the per-call approval flow with sandbox_permissions=danger-full-access and a justification. If it still fails there, check the corresponding macOS privacy setting.]");
+    } else '''+marker)
+
+
 def patch_asar(path, overlay):
     out = path.with_suffix(".miku-temp")
     with path.open("rb") as src:
@@ -261,23 +274,27 @@ def patch_asar(path, overlay):
         version=json.loads(src.read(pkg["size"]))["version"]
         if version!="0.2.1-rc.5":
             raise ValueError("필요한 Harness 버전: 0.2.1-rc.5. 선택한 버전: "+version)
-        files, name=entry(header,str(FRONT.parent.parent/"index.html"))
+        files, name=entry(header,(FRONT.parent.parent/"index.html").as_posix())
         if name not in files:
             raise ValueError("지원되지 않는 macOS 패키지 구조")
-        # The official system prompt module is part of the Mac base, outside the Korean overlay.
-        original=overlay/PROMPT
-        if original.exists():
-            script=original.read_text()
-        else:
-            entries,key=entry(header,PROMPT.as_posix())
-            record=entries[key]
-            if record.get("unpacked"):
-                script=(Path(str(path)+".unpacked")/PROMPT).read_text()
+        # These backend modules can come from the overlay or from the Mac base.
+        def patch_module(module, transform):
+            original = overlay / module
+            if original.exists():
+                script = original.read_text()
             else:
-                src.seek(start+int(record["offset"]))
-                script=src.read(record["size"]).decode()
-            original.parent.mkdir(parents=True,exist_ok=True)
-        original.write_text(adapt_prompt(script))
+                entries, key = entry(header, module.as_posix())
+                record = entries[key]
+                if record.get("unpacked"):
+                    script = (Path(str(path)+".unpacked") / module).read_text()
+                else:
+                    src.seek(start+int(record["offset"]))
+                    script = src.read(record["size"]).decode()
+                original.parent.mkdir(parents=True, exist_ok=True)
+            original.write_text(transform(script))
+
+        patch_module(PROMPT, adapt_prompt)
+        patch_module(PROMPT.parents[2] / "dsh-tool-bash/lib/index.js", adapt_mac_bash)
         tail=path.stat().st_size-start
         additions=sorted(p for p in overlay.rglob("*") if p.is_file())
         for p in additions:
@@ -302,6 +319,10 @@ def patch_asar(path, overlay):
 
 
 def build(app,overlay,archive):
+    if sys.platform=="win32":
+        prepare(overlay,archive)
+        patch_asar(app/"resources/app.asar",overlay)
+        return
     plist=app/"Contents/Info.plist"
     info=plistlib.loads(plist.read_bytes())
     prepare(overlay,archive)

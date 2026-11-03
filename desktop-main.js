@@ -11,11 +11,11 @@ function mikuAnchor(){
   mikuDisplayId=display.id;
   const {bounds,workArea:area}=display;
   const screenBottom=bounds.y+bounds.height;
-  mikuDockInset=Math.max(0,screenBottom-area.y-area.height);
+  mikuDockInset=process.platform==="win32"?0:Math.max(0,screenBottom-area.y-area.height);
   const full=mikuPetFrame==="full";
   const extra=Math.round((full?474:237)*Math.max(0,mikuPetSize/100-1));
   const width=Math.min(Math.max(346,Math.ceil(237*mikuPetSize/100)+24),area.width),height=Math.min((full?652:415)+extra,area.height);
-  mainWindow.setBounds({x:area.x+area.width-width,y:screenBottom-height,width,height});
+  mainWindow.setBounds({x:area.x+area.width-width,y:(process.platform==="win32"?area.y+area.height:screenBottom)-height,width,height});
   mainWindow.webContents.send("miku:pet-dock-inset",mikuDockInset);
 }
 ipcMain.on("miku:pet-size",(event,value,frame)=>{
@@ -41,33 +41,33 @@ function mikuMode(on){
     if(mikuOldMax)win.unmaximize();
     mikuOldBounds=win.getNormalBounds();
     win.setMinimumSize(220,240);
-    win.setVibrancy(null);
+    if(process.platform==="darwin")win.setVibrancy(null);
     win.setBackgroundColor("#00000000");
     win.setHasShadow(false);
-    win.setWindowButtonVisibility(false);
+    if(process.platform==="darwin")win.setWindowButtonVisibility(false);
     win.setResizable(false);
     win.setAlwaysOnTop(true,"floating");
-    win.setVisibleOnAllWorkspaces(true,{skipTransformProcessType:true});
-    win.setHiddenInMissionControl?.(true);
+    if(process.platform==="darwin")win.setVisibleOnAllWorkspaces(true,{skipTransformProcessType:true});
+    if(process.platform==="darwin")win.setHiddenInMissionControl?.(true);
     mikuAnchor();
     petCursorTimer=setInterval(updatePetPointer,32);
   }else{
     clearInterval(petCursorTimer);petRegions=[];petPass=null;
     win.setIgnoreMouseEvents(false);
-    win.setVisibleOnAllWorkspaces(false,{skipTransformProcessType:true});
+    if(process.platform==="darwin")win.setVisibleOnAllWorkspaces(false,{skipTransformProcessType:true});
     win.setAlwaysOnTop(false);
-    win.setHiddenInMissionControl?.(false);
+    if(process.platform==="darwin")win.setHiddenInMissionControl?.(false);
     win.setResizable(true);
     win.setMinimumSize(520,600);
     if(mikuOldBounds)win.setBounds(mikuOldBounds);
     if(mikuOldMax)win.maximize();
-    win.setVibrancy("sidebar");
+    if(process.platform==="darwin")win.setVibrancy("sidebar");
     win.setHasShadow(true);
-    win.setWindowButtonVisibility(true);
+    if(process.platform==="darwin")win.setWindowButtonVisibility(true);
   }
   win.webContents.send("miku:desktop-mode",on);
 }
-ipcMain.handle("miku:desktop-state",e=>{mikuTrusted(e);return {pet:mikuPet,dockInset:mikuDockInset,login:existsSync(mikuAgentFile)};});
+ipcMain.handle("miku:desktop-state",e=>{mikuTrusted(e);return {pet:mikuPet,dockInset:mikuDockInset,login:process.platform==="win32"?app.getLoginItemSettings({args:["--miku-login"]}).openAtLogin:existsSync(mikuAgentFile)};});
 ipcMain.handle("miku:desktop-mode", (e,on)=>{
   mikuTrusted(e);
   if(typeof on!=="boolean")throw Error("잘못된 창 모드");
@@ -93,6 +93,10 @@ ipcMain.on("miku:pet-regions",(event,regions)=>{
 ipcMain.handle("miku:desktop-login",async(e,on)=>{
   mikuTrusted(e);
   if(typeof on!=="boolean")throw Error("잘못된 로그인 설정");
+  if(process.platform==="win32"){
+    app.setLoginItemSettings({openAtLogin:on,args:["--miku-login"]});
+    return app.getLoginItemSettings({args:["--miku-login"]}).openAtLogin;
+  }
   if(on){
     const bundle=resolve(dirname(process.execPath),"../..");
     if(!bundle.endsWith(".app"))throw Error("설치된 앱에서 켜 줘.");

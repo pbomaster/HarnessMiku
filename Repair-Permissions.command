@@ -2,7 +2,22 @@
 set -euo pipefail
 [[ "$(uname -s)" == Darwin ]] || { echo "macOS에서 실행하세요."; exit 1; }
 apply_permissions() {
-    local app="$1" ent="$2"
+    local app="$1" ent="$2" identity="${MIKU_SIGN_IDENTITY:-}"
+    if [[ -z "$identity" ]]; then
+        local candidates
+        candidates="$(/usr/bin/security find-identity -v -p codesigning | awk '/^[[:space:]]*[0-9]+\)/ {print $2}')"
+        case "$candidates" in
+            *$'\n'*) echo "서명 인증서가 여러 개입니다. MIKU_SIGN_IDENTITY로 하나를 선택하세요." >&2; return 1 ;;
+            "") if [[ "$(/usr/libexec/PlistBuddy -c 'Print CFBundleIdentifier' "$app/Contents/Info.plist")" == local.harnessmiku.desktop ]]; then
+                    echo "복구할 때는 설치 때와 같은 서명 인증서를 MIKU_SIGN_IDENTITY로 지정하세요." >&2; return 1
+                fi
+                identity="-" ;;
+            *) identity="$candidates" ;;
+        esac
+    fi
+    if [[ "$identity" == "-" ]]; then
+        echo "임시 서명으로 설치합니다. 재설치 시 macOS 권한을 다시 승인해야 할 수 있습니다." >&2
+    fi
     /usr/bin/codesign --display --entitlements - --xml "$app" > "$ent"
     python3 - "$ent" "$app/Contents/Info.plist" <<'PY'
 import plistlib, sys
@@ -19,12 +34,13 @@ ent.update({key: True for key in (
     "com.apple.security.device.audio-input",
     "com.apple.security.automation.apple-events",
 )})
-info.update(NSAppleEventsUsageDescription="요청한 작업을 수행하기 위해 다른 앱에 Apple 이벤트를 보냅니다.",
+info.update(CFBundleIdentifier="local.harnessmiku.desktop",
+            NSAppleEventsUsageDescription="요청한 작업을 수행하기 위해 다른 앱에 Apple 이벤트를 보냅니다.",
             NSAudioCaptureUsageDescription="요청한 화면 녹화에 Mac의 시스템 소리를 포함합니다.")
 ep.write_bytes(plistlib.dumps(ent))
 ip.write_bytes(plistlib.dumps(info))
 PY
-    /usr/bin/codesign --force --sign - --options runtime --entitlements "$ent" "$app"
+    /usr/bin/codesign --force --sign "$identity" --identifier local.harnessmiku.desktop --options runtime --entitlements "$ent" "$app"
     /usr/bin/codesign --verify --deep --strict "$app"
 }
 

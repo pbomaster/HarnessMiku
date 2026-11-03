@@ -1,18 +1,20 @@
 // Register alongside the existing primary-frame IPC handlers.
 let fishKey="", fishLoading, rejectedFishEnv=false;
-const fishDir=join(homedir(),"Library","Application Support","Harness Miku","Credentials");
+const mikuSupportDir=process.platform==="win32" ? join(app.getPath("appData"),"Harness Miku") : join(homedir(),"Library","Application Support","Harness Miku");
+const fishDir=join(mikuSupportDir,"Credentials");
 const fishPath=join(fishDir,"fish-key.enc");
 async function loadFishKey(){
   const {safeStorage}=await import("electron");
-  if(!safeStorage.isEncryptionAvailable())throw Error("macOS 키체인을 잠금 해제한 뒤 다시 시도해 줘.");
+  if(!safeStorage.isEncryptionAvailable())throw Error("운영체제 자격 증명 저장소을 잠금 해제한 뒤 다시 시도해 줘.");
   let encrypted;
   try {encrypted=await readFile(fishPath);}
   catch(err){if(err.code!=="ENOENT")throw Error("저장된 Fish 키 파일을 읽을 수 없어.");}
   if(encrypted){
     try {fishKey=safeStorage.decryptString(encrypted);return true;}
-    catch {throw Error("저장된 Fish 키를 열 수 없어. macOS 키체인 접근을 확인해 줘.");}
+    catch {throw Error("저장된 Fish 키를 열 수 없어. 운영체제 자격 증명 저장소 접근을 확인해 줘.");}
   }
   let candidate=rejectedFishEnv ? "" : process.env.FISH_API_KEY?.trim();
+  if(!candidate && process.platform==="win32")throw Error("Fish Audio를 사용하려면 Windows 사용자 환경 변수 FISH_API_KEY를 설정한 뒤 앱을 다시 실행해 줘.");
   if(!candidate){
     const script='text returned of (display dialog "Fish Audio API 키를 입력하세요. 이 Mac에 암호화하여 저장합니다." default answer "" with hidden answer buttons {"취소","확인"} default button "확인" cancel button "취소" with title "미쿠 목소리")';
     candidate=await new Promise(resolve=>execFile("/usr/bin/osascript",["-e",script],{env:{LANG:"en_US.UTF-8"}},(err,out)=>resolve(err?"":out.trim())));

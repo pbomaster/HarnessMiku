@@ -5,9 +5,9 @@ function mikuTrusted(event) {
 }
 ipcMain.handle("miku:voice-ready", async (event) => {
   mikuTrusted(event);
-  return systemPreferences.askForMediaAccess("microphone");
+  return process.platform==="darwin" ? systemPreferences.askForMediaAccess("microphone") : true;
 });
-const senseRoot=join(homedir(),"Library","Application Support","Harness Miku","SenseVoice","1.12.14-20240717");
+const senseRoot=join(mikuSupportDir,"SenseVoice","1.12.14-20240717");
 ipcMain.handle("miku:transcribe", async (event, pcm, language) => {
   mikuTrusted(event);
   if (!(pcm instanceof Int16Array) || !pcm.length || pcm.length > 16000*65 || !["ko","en"].includes(language))
@@ -26,10 +26,12 @@ ipcMain.handle("miku:transcribe", async (event, pcm, language) => {
     const args=["--sense-voice-model="+join(senseRoot,"model/model.int8.onnx"),
       "--tokens="+join(senseRoot,"model/tokens.txt"),"--sense-voice-language="+language,
       "--sense-voice-use-itn=true","--num-threads=4",file];
-    const diagnostic=await new Promise((resolve,reject)=>execFile(join(senseRoot,"runtime/bin/sherpa-onnx-offline"),
+    const recognizer=join(senseRoot,"runtime/bin",process.platform==="win32"?"sherpa-onnx-offline.exe":"sherpa-onnx-offline");
+    if(process.platform==="win32" && !existsSync(recognizer))throw Error("받아쓰기를 설치하려면 Install-Windows.cmd --speech 를 실행해 줘.");
+    const diagnostic=await new Promise((resolve,reject)=>execFile(recognizer,
       args,{timeout:120000,maxBuffer:2*1024*1024},(err,stdout,stderr)=>err?
         reject(Error("로컬 SenseVoice 실행 실패. 설치기를 다시 실행해 줘.")):resolve(stderr)));
-    const section=diagnostic.split(file+"\n").at(-1).split("\n----")[0];
+    const section=diagnostic.replaceAll("\r\n","\n").split(file+"\n").at(-1).split("\n----")[0];
     const text=JSON.parse(section).text.replace(/<\|[^|]*\|>/g,"").trim();
     if(!text)throw Error("목소리가 들리지 않았어. 다시 말해 줄래?");
     return text;
@@ -38,7 +40,7 @@ ipcMain.handle("miku:transcribe", async (event, pcm, language) => {
 
 const mikuFactoryPersona=MIKU_FACTORY_PERSONA;
 ipcMain.handle("miku:prompt-preset",event=>{mikuTrusted(event);return mikuFactoryPersona;});
-const mikuPromptDir=join(homedir(),"Library","Application Support","Harness Miku");
+const mikuPromptDir=mikuSupportDir;
 const mikuPromptPath=join(mikuPromptDir,"system-prompt.txt");
 ipcMain.handle("miku:prompt-get",async event=>{
   mikuTrusted(event);
@@ -63,8 +65,8 @@ async function readMikuCredentialFile(name){
   const file=await open(join(resolveDshHome(),name),constants.O_RDONLY|constants.O_NONBLOCK|constants.O_NOFOLLOW);
   try{
     const info=await file.stat();
-    if(!info.isFile() || info.uid!==process.getuid())throw Error("자격 증명 파일 소유자를 확인해 줘.");
-    if(info.mode & 0o077)await file.chmod(info.mode & 0o700);
+    if(!info.isFile() || (process.platform!=="win32" && info.uid!==process.getuid()))throw Error("자격 증명 파일 소유자를 확인해 줘.");
+    if(process.platform!=="win32" && (info.mode & 0o077))await file.chmod(info.mode & 0o700);
     return await file.readFile("utf8");
   }finally{await file.close();}
 }
