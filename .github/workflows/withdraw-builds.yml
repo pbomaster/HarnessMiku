@@ -1,0 +1,28 @@
+name: Withdraw published builds
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/withdraw-builds.yml']
+permissions: {}
+jobs:
+  withdraw:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      actions: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+    steps:
+      - name: Remove hosted release assets, releases and tags
+        run: |
+          set -eu
+          for tag in v0.0.2 v0.0.1; do
+            gh release delete "$tag" --repo "$REPO" --yes --cleanup-tag
+          done
+      - name: Remove downloadable installer build artifacts
+        if: always()
+        run: |
+          set -eu
+          gh api --paginate "repos/$REPO/actions/artifacts?per_page=100" --jq '.artifacts[] | select(.name | startswith("HarnessMiku-Windows-")) | .id' > "$RUNNER_TEMP/withdraw-ids"
+          while read -r id; do gh api --method DELETE "repos/$REPO/actions/artifacts/$id"; done < "$RUNNER_TEMP/withdraw-ids"
