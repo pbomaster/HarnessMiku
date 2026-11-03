@@ -10,9 +10,9 @@ DeepSeek Harness의 채팅과 작업공간에 Live2D 캐릭터를 더하는 비�
 
 ## Windows x64 설치
 
-1. Windows용 DeepSeek Harness **0.2.1-rc.5 x64** 원본을 설치하고 종료하세요. Python 3.12 이상(Windows py 실행기 포함)과 Git이 필요합니다.
-2. 공식 Ko-fi에서 받은 모델 ZIP을 설치 키트 옆에 두고 `Install-Windows.cmd`를 실행하세요. 원본 설치 경로가 다르면 명령 프롬프트에서 `Install-Windows.cmd "원본 폴더"`로 지정합니다.
-3. 완성된 앱은 `%LOCALAPPDATA%\Programs\Harness Miku\DeepSeek Harness.exe`입니다. 원본 프로그램과 번갈아 실행하세요. 기존 데이터와 계정을 사용할 수 있습니다.
+1. [Windows 원클릭 설치기](https://github.com/pbomaster/HarnessMiku/raw/refs/heads/main/dist/HarnessMiku-Windows-x64-Setup.exe)를 다운로드하세요. 설치기가 공식 하네스에 포함된 Python을 사용합니다. Python과 Git을 별도로 설치할 필요가 없습니다.
+2. 제작자의 [Ko-fi](https://ko-fi.com/s/7bb9ac0243)에서 받은 모델 ZIP을 EXE 옆에 두고 EXE를 실행하세요. ZIP이 다른 위치에 있으면 파일 선택 창이 열립니다. 기본 위치에 공식 하네스가 없으면 고정 버전 설치기를 다운로드해 해시 확인 후 설치합니다. 다른 경로의 기존 하네스를 쓰려면 ZIP 키트의 `Install-Windows.cmd "원본 폴더"`를 실행하세요.
+3. 설치가 끝나면 앱이 열리며 시작 메뉴의 Harness Miku로 다시 실행할 수 있습니다. 설치 경로는 `%LOCALAPPDATA%\Programs\Harness Miku\DeepSeek Harness.exe`입니다. 원본 프로그램과 번갈아 실행하세요. 기존 데이터와 계정을 사용할 수 있습니다.
 4. 한국어·영어 받아쓰기는 키트에서 `Install-Windows.cmd --speech`를 한 번 실행해 추가합니다. Fish 낭독을 사용하려면 첫 사용 시 Windows 사용자 환경 변수 FISH_API_KEY를 지정하고 앱을 다시 여세요. 저장에는 Electron의 Windows 사용자 계정 암호화를 사용합니다.
 
 ## macOS 준비와 설치

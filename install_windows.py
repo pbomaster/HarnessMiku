@@ -3,7 +3,7 @@ import hashlib
 import os
 from pathlib import Path
 import shutil
-import subprocess
+import zipfile
 import sys
 import tarfile
 import tempfile
@@ -63,9 +63,20 @@ def install(source, model):
     with tempfile.TemporaryDirectory(dir=target.parent) as tmp:
         stage = Path(tmp)
         repo = stage/"upstream"
-        subprocess.run(["git", "init", "-q", str(repo)], check=True)
-        subprocess.run(["git","-C",str(repo),"-c","core.longpaths=true","fetch","--depth=1","https://github.com/noire113-dev/deepseek-harness-kr.git",COMMIT],check=True)
-        subprocess.run(["git","-C",str(repo),"-c","core.longpaths=true","checkout","-q","--detach",COMMIT],check=True)
+        archive = stage/"overlay.zip"
+        urllib.request.urlretrieve("https://codeload.github.com/noire113-dev/deepseek-harness-kr/zip/"+COMMIT, archive)
+        if digest(archive) != "e050dec33e0d7ef81e8efa3fcc349822742a60786740cfa18e69255a59eb85b2":
+            raise ValueError("한국어 패치 ZIP의 해시가 일치하지 않습니다.")
+        with zipfile.ZipFile(archive) as z:
+            prefix = "deepseek-harness-kr-"+COMMIT+"/"
+            for info in z.infolist():
+                rel = info.filename.removeprefix(prefix)
+                if info.is_dir() or not (rel.startswith("harness/overlay/") or rel in {"LICENSE","NOTICE.md","harness/tools/app-update.yml"}):
+                    continue
+                path = repo/rel
+                path.parent.mkdir(parents=True, exist_ok=True)
+                with z.open(info) as src, path.open("wb") as dst:
+                    shutil.copyfileobj(src,dst)
         app = stage/"app"
         shutil.copytree(source, app, ignore=shutil.ignore_patterns("Uninstall*.exe","app.asar.orig*","app.asar.bak*","debug.log"))
         port.build(app, repo/"harness/overlay", model)
@@ -85,7 +96,7 @@ if __name__ == "__main__":
         speech_setup()
     else:
         base = Path(os.environ["LOCALAPPDATA"])/"Programs/DeepSeek Harness"
-        model = Path(__file__).with_name("New1007-RetrynowMiku.zip")
+        model = (Path(sys.argv[2]) if len(sys.argv)>2 else Path(__file__).with_name("New1007-RetrynowMiku.zip"))
         if not model.is_file():
             from tkinter.filedialog import askopenfilename
             selected = askopenfilename(title="RetrynowMiku 원본 ZIP 선택",filetypes=[("ZIP","*.zip")])
