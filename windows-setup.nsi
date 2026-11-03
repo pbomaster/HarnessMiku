@@ -1,6 +1,6 @@
 Unicode true
 SetCompressor /SOLID lzma
-Name "Harness Miku v29 (Windows x64)"
+Name "Harness Miku v0.0.3 (Windows x64)"
 OutFile "HarnessMiku-Windows-x64-Setup.exe"
 RequestExecutionLevel user
 ShowInstDetails show
@@ -9,11 +9,25 @@ Section
   InitPluginsDir
   SetOutPath "$PLUGINSDIR"
   File windows-setup.ps1
-  File *.py
-  File *.js
-  File *.cjs
-  File *.json
-  File *.css
+  File codex-host.js
+  File codex_patch.py
+  File desktop-main.js
+  File desktop-ui.js
+  File features.py
+  File fixed-voice.json
+  File hashes.json
+  File install_windows.py
+  File layout.js
+  File lines.json
+  File pinned-recap.js
+  File port.py
+  File recap-tones.json
+  File recap.js
+  File speech-main.js
+  File speech-ui.js
+  File theme.css
+  File voice-main.js
+  File voice-preload.cjs
   File retry-persona.txt
   File miku-mark.svg
   File LICENSE

@@ -144,3 +144,34 @@ if (window.top===window && location.protocol==="dsh-app:" && location.hostname==
   };
   if(document.readyState==="loading")addEventListener("DOMContentLoaded",mountVoice,{once:true});else mountVoice();
 }
+
+if(window.top===window && location.protocol==="dsh-app:" && location.hostname==="app"){
+  let timer, sequence=0;
+  document.addEventListener("click",async event=>{
+    const button=event.target.closest?.("button[data-miku-codex]");
+    if(!event.isTrusted || !button)return;
+    const row=button.closest("section");
+    const label=row.querySelector("[data-miku-codex-status]");
+    const invoke=action=>electron.ipcRenderer.invoke("miku:codex",action);
+    if(button.dataset.mikuCodex==="open"){await invoke("open");return;}
+    const ticket=++sequence;
+    clearTimeout(timer);
+    const start=row.querySelector('[data-miku-codex="start"]');
+    const cancel=row.querySelector('[data-miku-codex="cancel"]');
+    const open=row.querySelector('[data-miku-codex="open"]');
+    async function update(action){
+      if(!row.isConnected || ticket!==sequence)return;
+      try{
+        start.disabled=true;
+        const {phase,code}=await invoke(action);
+        if(ticket!==sequence || !row.isConnected)return;
+        start.disabled=phase==="waiting";cancel.hidden=!start.disabled;open.hidden=!start.disabled||!code;
+        label.textContent=phase==="waiting" ? (code ? "OpenAI 인증 페이지에 입력할 코드: "+code : "인증 코드 준비 중…") :
+          phase==="connected" ? "연결 완료 · 새 세션에서 ChatGPT (Codex) 모델을 선택하세요." :
+          phase==="cancelled" ? "인증을 취소했어요." : "인증을 완료하지 못했어요. 계정의 기기 코드 인증 설정을 확인하고 다시 시도하세요.";
+        if(phase==="waiting")timer=setTimeout(()=>update("status"),1200);
+      }catch{start.disabled=false;cancel.hidden=open.hidden=true;label.textContent="Codex 인증 서비스를 확인할 수 없어요. 다시 시도하세요.";}
+    }
+    await update(button.dataset.mikuCodex);
+  });
+}

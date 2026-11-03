@@ -1,0 +1,78 @@
+name: Build and publish reviewed installers
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/release.yml']
+  workflow_dispatch:
+permissions: {}
+jobs:
+  kits:
+    runs-on: ubuntu-24.04
+    permissions: {contents: read, id-token: write, attestations: write}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false}
+      - name: Build and inspect Windows installer and source kits
+        run: |
+          set -euo pipefail
+          python3 packaging/verify.py kits
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends nsis 7zip
+          makensis -V3 windows-setup.nsi
+          7zz x -y -o"$RUNNER_TEMP/payload" HarnessMiku-Windows-x64-Setup.exe
+          python3 packaging/verify.py exe "$RUNNER_TEMP/payload"
+          mv HarnessMiku-Windows-x64-Setup.exe release/
+      - uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be
+        with: {subject-path: release/HarnessMiku-Windows-x64-Setup.exe}
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with: {name: reviewed-kits, path: release/, if-no-files-found: error}
+  mac:
+    needs: kits
+    runs-on: macos-15
+    permissions: {contents: read, actions: read, id-token: write, attestations: write}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false}
+      - name: Build and inspect macOS installer disk image
+        env: {GH_TOKEN: "${{ github.token }}"}
+        run: |
+          set -eu
+          gh run download "$GITHUB_RUN_ID" -n reviewed-kits -D input
+          bash packaging/build-mac.sh input/HarnessMiku-Mac.zip "$PWD/HarnessMiku-Mac.dmg"
+      - uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be
+        with: {subject-path: HarnessMiku-Mac.dmg}
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with: {name: reviewed-dmg, path: HarnessMiku-Mac.dmg}
+  publish:
+    needs: [kits, mac]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    permissions: {actions: read, contents: write, attestations: read}
+    env: {GH_TOKEN: "${{ github.token }}", GH_REPO: "${{ github.repository }}"}
+    steps:
+      - name: Verify provenance and publish
+        run: |
+          set -euo pipefail
+          gh run download "$GITHUB_RUN_ID" -n reviewed-kits -D release
+          gh run download "$GITHUB_RUN_ID" -n reviewed-dmg -D release
+          cd release
+          for file in *.exe *.dmg; do gh attestation verify "$file" -R "$GH_REPO" --signer-workflow "$GH_REPO/.github/workflows/release.yml"; done
+          sha256sum *.exe *.dmg *.zip > SHA256SUMS.txt
+          base="https://github.com/$GH_REPO/releases/download/v0.0.3"
+          cat > ../notes <<EOF
+          ## 설치 및 다운로드
+
+          | Windows x64 | macOS Apple Silicon | 소스 및 검증 |
+          |---|---|---|
+          | [원클릭 EXE]($base/HarnessMiku-Windows-x64-Setup.exe) · [설치 ZIP]($base/HarnessMiku-Windows-x64.zip) | [설치 DMG]($base/HarnessMiku-Mac.dmg) · [설치 ZIP]($base/HarnessMiku-Mac.zip) | [소스 ZIP]($base/HarnessMiku-source.zip) · [SHA256SUMS]($base/SHA256SUMS.txt) |
+
+          [제작자에게서 모델 ZIP을 직접 받으세요](https://ko-fi.com/s/7bb9ac0243). Windows에서는 EXE를 실행하세요. Mac에서는 DMG 안의 설치 앱을 실행하세요. 파일 선택 창에서 원본 모델 ZIP을 지정하면 됩니다.
+
+          설치 후 **설정 → 모델 → ChatGPT 구독으로 로그인**을 누르고 OpenAI 기기 코드 인증을 마친 다음 새 세션에서 Codex 모델을 선택하세요. 실제 이용 가능 여부는 OpenAI 계정에 따릅니다.
+
+          공개 Actions에서 두 플랫폼의 설치기를 만들고 포함 파일을 검사했습니다. 모델 원본과 텍스처는 배포하지 않습니다. EXE와 DMG에는 GitHub 빌드 출처 증명이 있습니다. Windows 게시자 서명과 Apple 공증은 없습니다. [자세한 설치 및 검증 안내](https://github.com/$GH_REPO/blob/v0.0.3/README.md).
+
+          ## SHA-256
+          EOF
+          printf '\n```text\n' >> ../notes; cat SHA256SUMS.txt >> ../notes; printf '```\n' >> ../notes
+          gh release create v0.0.3 ./* --target "$GITHUB_SHA" --title 'Harness Miku v0.0.3 · ChatGPT 로그인 · Windows & macOS' --notes-file ../notes

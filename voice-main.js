@@ -112,3 +112,11 @@ ipcMain.handle("miku:llama-models",async(event,port)=>{
   if(!Array.isArray(data))throw Error("모델 목록 형식 오류");
   return {base,ids:data.map(row=>row?.id).filter(id=>typeof id==="string" && id.length<=512)};
 });
+
+const mikuCodexOwner=randomUUID();
+ipcMain.handle("miku:codex",async(event,action)=>{
+  mikuTrusted(event);
+  if(action==="open"){await shell.openExternal("https://auth.openai.com/codex/device");return;}
+  if(!["start","status","cancel"].includes(action)||!welcomeBackend)throw Error("계정 서비스를 사용할 수 없어.");
+  return welcomeBackend.mikuCodex(action,mikuCodexOwner);
+});

@@ -9,6 +9,7 @@ import shutil
 import struct
 import sys
 import zipfile
+from codex_patch import controller as codex_controller, metadata as codex_metadata
 from features import adapt_bubble, adapt_prompt, adapt_ui, PROMPT
 
 FRONT = Path("dsh/node_modules/@deepseek-ai/dsh-web-frontend/dist/assets/dsc")
@@ -25,7 +26,7 @@ def adapt_desktop(src,kit):
         nonlocal src
         if src.count(old)!=1: raise ValueError("Desktop window patch mismatch: "+old)
         src=src.replace(old,new)
-    patch("async save(apiKey) {","async balanceRef(){return (await settingsAndReference()).ref;},\n        async save(apiKey) {")
+    patch("async save(apiKey) {","async mikuCodex(action,owner){return invoke({namespace:\"settings\",method:\"mikuCodex\",args:{action,owner}});},\n        async balanceRef(){return (await settingsAndReference()).ref;},\n        async save(apiKey) {")
     patch("width: 1280,","transparent: primary, acceptFirstMouse:true, width: 1280,")
     patch('const applyBackdrop = () => {','const applyBackdrop = () => { if(window.isAlwaysOnTop()){window.setVibrancy(null);window.setBackgroundColor("#00000000");return;}')
     patch('const shortcuts = installDesktopShortcuts(', (kit/"desktop-main.js").read_text()+'\nconst shortcuts = installDesktopShortcuts(')
@@ -293,6 +294,9 @@ def patch_asar(path, overlay):
                 original.parent.mkdir(parents=True, exist_ok=True)
             original.write_text(transform(script))
 
+        settings_module = PROMPT.parents[2] / "dsh-api-settings-controller/lib"
+        patch_module(settings_module/"index.js", codex_controller)
+        patch_module(settings_module/"typert.host.js", codex_metadata)
         patch_module(PROMPT, adapt_prompt)
         patch_module(PROMPT.parents[2] / "dsh-tool-bash/lib/index.js", adapt_mac_bash)
         tail=path.stat().st_size-start

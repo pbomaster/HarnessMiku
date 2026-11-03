@@ -51,7 +51,15 @@ def adapt_ui(overlay,dest):
                 id: "miku.deepseek-account",
                 locale: "settings.account",
                 inject: () => operations
-            }, AccountSection));
+            }, props => (0,react_jsx_runtime.jsxs)(react.Fragment,{children:[
+                (0,react_jsx_runtime.jsx)(AccountSection,props),
+                (0,react_jsx_runtime.jsxs)("section",{"aria-label":"ChatGPT 구독",children:[
+                    (0,react_jsx_runtime.jsx)("button",{type:"button","data-miku-codex":"start",children:"ChatGPT 구독으로 로그인"}),
+                    (0,react_jsx_runtime.jsx)("span",{role:"status","data-miku-codex-status":""}),
+                    (0,react_jsx_runtime.jsx)("button",{hidden:true,type:"button","data-miku-codex":"open",children:"OpenAI 인증 페이지 열기"}),
+                    (0,react_jsx_runtime.jsx)("button",{hidden:true,type:"button","data-miku-codex":"cancel",children:"취소"})
+                ]})
+            ]})));
             '''+anchor)
     account.write_text(source)
     sidebar=module("sidebar")
