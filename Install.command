@@ -4,9 +4,34 @@ cd "$(dirname "$0")"
 if [[ "$(uname -s)/$(uname -m)" != Darwin/arm64 ]]; then
     echo "Apple Silicon Mac용입니다."; exit 1
 fi
-command -v python3 >/dev/null || { echo "Python 3를 설치해 주세요."; exit 1; }
-# Xcode command line tools supply git and Apple's signing commands.
-git --version >/dev/null
+# On a clean Mac the commands in /usr/bin may be developer-tool shims.
+# Avoid invoking either shim before macOS has installed its developer tools.
+tools_ready() {
+    local tool path
+    for tool in python3 git; do
+        path="$(command -v "$tool")" || return 1
+        if [[ "$path" == "/usr/bin/$tool" ]]; then
+            /usr/bin/xcode-select -p >/dev/null 2>&1 || return 1
+            /usr/bin/xcrun --find "$tool" >/dev/null 2>&1 || return 1
+        fi
+        "$path" --version >/dev/null 2>&1 || return 1
+    done
+}
+if ! tools_ready; then
+    echo "필요한 도구를 설치합니다. macOS 설치 창에서 설치를 선택하고 이 터미널을 열어 두세요."
+    /usr/bin/xcode-select --install || {
+        echo "Apple 개발자 도구 설치를 시작하지 못했습니다. 시스템 설정의 소프트웨어 업데이트를 확인해 주세요."
+        exit 1
+    }
+    deadline=$((SECONDS + 3600))
+    until tools_ready; do
+        if (( SECONDS >= deadline )); then
+            echo "도구 설치가 아직 완료되지 않았습니다. 설치가 끝난 뒤 다시 실행해 주세요."
+            exit 1
+        fi
+        sleep 5
+    done
+fi
 destination="$HOME/Applications/Harness Miku.app"
 if [[ -e "$destination" ]]; then
     echo "기존 Harness Miku.app을 닫고 다른 이름으로 옮긴 뒤 다시 실행해 주세요."; exit 1
