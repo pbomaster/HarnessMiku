@@ -1,2 +1,66 @@
-# HarnessMiku
-A cute and efficient Miku for you, based on Deepseek Harness
+# Harness Miku · macOS Apple Silicon
+
+**제작 · pbomaster, ChatGPT(OpenAI)**
+
+DeepSeek Harness의 채팅과 작업공간에 Live2D 캐릭터를 더하는 비공식 팬 프로젝트입니다. v28 설치 키트는 기존 Harness의 모델 선택기를 사용하므로 같은 대화 UI에서 로컬 llama.cpp 모델이나 사용자가 등록한 클라우드 모델을 선택할 수 있습니다.
+
+## 준비와 설치
+
+1. Apple Silicon Mac, macOS 13 이상, Python 3, Git과 Apple 명령줄 도구를 준비하세요. 필요한 경우 터미널에서 `xcode-select --install`을 실행하세요.
+2. 제작자의 [공식 Ko-fi 배포 페이지](https://ko-fi.com/s/7bb9ac0243)에서 이용 조건을 읽고 원본 모델 ZIP을 직접 받으세요. `New1007-RetrynowMiku.zip`을 이 키트의 `Install.command` 옆에 두거나 설치 중 파일 선택 창에서 지정하세요.
+3. 키트 ZIP을 풀고 기존 하네스를 종료한 뒤 `Install.command`를 실행하세요. 터미널에서 설치 폴더로 이동해 `bash Install.command`를 실행해도 됩니다.
+4. 설치기는 DeepSeek 공식 mac-arm64 DMG(0.2.1-rc.5), 고정 커밋의 한국어 오버레이, 로컬 받아쓰기 엔진과 모델을 다운로드합니다. DMG 및 음성 다운로드의 해시와 원본 앱 서명을 검사하고 사용자 Mac에서 앱 복사본을 서명합니다. 이미 받은 DMG와 모델 ZIP 경로를 차례대로 지정하려면 `bash Install.command "/경로/New1007-RetrynowMiku.zip" "/경로/deepseek-harness-0.2.1-rc.5-mac-arm64.dmg"`를 사용하세요.
+5. Finder에서 `~/Applications/Harness Miku.app`을 실행하세요. 첫 화면에서 DeepSeek 로그인을 건너뛰고 로컬 모델을 설정할 수 있습니다.
+
+## llama.cpp로 첫 대화하기
+
+사용자가 실행한 **llama-server**에 연결합니다. GGUF 파일의 라이선스와 메모리 요구량을 확인하고 별도로 준비하세요. 예를 들어 서버를 아래처럼 시작합니다.
+
+```sh
+llama-server -m "/경로/model.gguf" --host 127.0.0.1 --port 8080 --alias local-chat
+```
+
+1. 채팅 입력창의 화살표를 열고 **llama.cpp 연결 → 모델 확인**을 누릅니다. 서버가 다른 포트에서 실행 중이면 포트를 변경하세요. 이 기능은 루프백 주소로 모델 목록을 요청합니다.
+2. **설정 → 모델 → 모델 제공자 추가 → 사용자 지정 API**에서 제공자 ID를 `llamacpp`, 주소를 `http://127.0.0.1:8080/v1`, 프로토콜을 **OpenAI Chat Completions**로 지정합니다. 반환된 모델 ID(위 예의 경우 `local-chat`)를 등록하세요.
+3. 인증 없는 로컬 서버인데 키 입력이 필수라면 로컬 제공자 전용 임의 문자열 `local-only`를 사용하세요. 서버가 인증을 요구하면 서버에서 설정한 전용 키와 모델 ID를 입력하세요. DeepSeek·Fish 키를 이 칸에 넣지 마세요.
+4. 새 세션의 모델 선택기에서 등록한 모델을 고르고 짧은 메시지를 보내세요. 데이터가 전달되는 주소는 이 제공자에 저장한 주소입니다. 서버를 종료하면 로컬 모델의 응답도 중단됩니다.
+5. 연결이 실패하면 같은 Mac에서 `curl http://127.0.0.1:8080/v1/models`를 실행해 주소와 모델 ID를 확인하세요. 대화는 되지만 도구 호출이 실패하면 모델의 도구 지원 여부와 llama.cpp 채팅 템플릿을 확인하세요. 메뉴의 모델 조회는 실제 생성이나 도구 실행을 시험하지 않습니다.
+
+[llama.cpp 서버 사용법](https://github.com/ggml-org/llama.cpp/tree/master/tools/server) · [Harness 모델 설정](https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/user/guide/providers.md)
+
+## 채팅과 바탕화면 미쿠
+
+- 채팅창의 화살표를 누르면 음성, 표시 범위, 캐릭터 크기, 기본 프롬프트 등 추가 옵션이 열립니다. 모니터 아이콘으로 바탕화면 미쿠를 열 수 있습니다. 바탕화면 모드에서는 모델 아래 입력창에서 바로 대화하고 왼쪽 화살표로 작업공간과 전체 채팅을 엽니다.
+- 앱과 바탕화면에서 상반신·전신 보기를 따로 저장합니다. 머리, 팔, 리본, 하단 의상과 다리에 대한 반응은 보이는 부위에 따라 달라집니다. 마우스 시선 추적, 도구 알림, 승인 요청, 파일 드롭을 지원합니다.
+- 표준 모드에서 모델이 응답에 요약 표지를 작성하면 마지막 문단이 말풍선으로 표시됩니다. 클릭하거나 다음 입력을 시작하면 닫힙니다. 모델의 출력 형식에 따라 요약이 생략될 수 있습니다.
+- DeepSeek를 사용하려면 설정의 DeepSeek 제공자에 본인 키를 저장하세요. 입력창의 크레딧은 DeepSeek 계정 잔액입니다. 로컬 모델에는 이 잔액이 적용되지 않습니다.
+
+## 음성, 입 모양과 개인 정보
+
+- 마이크 버튼으로 한국어·영어를 최대 60초간 녹음합니다. SenseVoice가 Mac에서 인식한 내용을 입력창에 넣으면 수정 후 전송하세요. 첫 설치에는 인터넷이 필요하며, 녹음 임시 파일은 처리 후 삭제됩니다.
+- 선택 기능인 **미쿠 목소리 켜기**를 사용하려면 먼저 옵션의 음성 ID에 사용 권한이 있는 Fish 참조 음성 ID를 지정하세요. Fish 키는 숨김 입력창 또는 FISH_API_KEY에서 읽고 macOS 키체인 기반 암호화로 앱 바깥에 저장합니다. 음성을 켜면 낭독할 고정 대사와 대화 요약이 Fish Audio로 전송됩니다. 로컬 대화의 요약도 포함됩니다. 로컬 처리만 원하면 낭독을 끄고 외부 서비스에 접속하는 도구도 사용하지 마세요.
+- 무음 말풍선은 한글·영어 모음에 맞춰 입을 움직입니다. Fish 음성이 있으면 재생 음량과 쉼에 맞추고, 발화 구간에 글자의 모음을 배분합니다. v28에서는 ‘ㅏ/a’의 입 벌림과 턱 움직임을 줄였습니다. 음소 경계는 추정값입니다.
+- DeepSeek 키는 Harness의 자격 증명 저장소가 관리합니다. 설정·세션·자격 증명 파일이나 진단 로그를 공개 이슈에 첨부하지 마세요. Fish 키를 교체하려면 앱 종료 후 `~/Library/Application Support/Harness Miku/Credentials/fish-key.enc`를 삭제하고 다시 입력하세요. 환경 변수로 지정했다면 그 값도 갱신하세요.
+
+## 업데이트와 복구
+
+기존 앱을 종료하고 이전 앱의 이름을 바꾼 뒤 설치하세요. 원본 Harness와 설정·세션 경로를 공유하므로 한 번에 하나만 실행하세요. 업데이트 전에는 자신의 설정을 개인 위치에 백업하세요. 설치 키트는 로컬 모델을 자동으로 기본 모델로 선택하거나 개인 전역 프롬프트를 교체하지 않습니다. 앱 삭제 시 기존 데이터를 유지하려면 앱 번들만 제거하세요.
+
+해시 불일치가 나오면 지정 버전의 원본을 다시 받으세요. 설치기는 임의의 새 업스트림 버전을 패치하지 않습니다. 이 키트는 Apple 공증을 받은 완성 앱이 아니며 실제 Mac에서 설치와 주요 기능을 확인해야 합니다.
+
+## 배포 범위와 이용 조건
+
+이 저장소는 설치 스크립트, UI 패치, 고정 대사와 설정 자료를 제공합니다. Live2D 모델, 완성 앱, DeepSeek 바이너리, 음원, GGUF 가중치 및 음성 엔진은 별도로 받습니다. 설치 완료 후 **모델이 포함된 앱이나 설치 디렉터리를 재배포하지 마세요**. 모델은 개인 비상업적 사용을 위한 비공식 팬 모델이며, 제작자는 미러·재업로드와 수익화 방송을 금지합니다. 자세한 조건은 [모델 공식 페이지](https://ko-fi.com/s/7bb9ac0243)를 확인하세요. 다른 구성 요소에도 각 제작자의 조건이 적용됩니다.
+
+제3자 소프트웨어의 저작권 표시, MIT 사용권 전문 및 모델 이용 조건은 [제3자 고지](third_party_notices.md)에서 확인할 수 있습니다.
+
+## Acknowledgements
+
+**Inspired by**
+
+- [いますぐ輪廻 / 지금 바로 윤회](https://youtu.be/3iUgKH8c7p4) — 음악 [なきそ](https://x.com/7kiso_nakiso), MV [channel](https://x.com/x_cast_x)
+- [RetrynowMiku Live2D 팬 모델](https://ko-fi.com/s/7bb9ac0243) — 일러스트 [Ruby_呜哔うび](https://space.bilibili.com/zh-Hans/107600), Live2D 리깅 [慈善小霓](https://space.bilibili.com/zh-Hans/39488)
+- [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) — 데스크톱 앱, 작업공간과 모델 제공자 시스템의 기반
+- [noire113-dev/deepseek-harness-kr](https://github.com/noire113-dev/deepseek-harness-kr) — 한국어 오버레이와 캐릭터 통합의 기반
+
+그 밖의 기반 프로젝트 · [llama.cpp](https://github.com/ggml-org/llama.cpp), [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx), [SenseVoice](https://github.com/FunAudioLLM/SenseVoice).

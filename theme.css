@@ -1,0 +1,187 @@
+/* Twin mint ribbons against a blush stage. */
+html body::before {
+  background:
+    radial-gradient(circle at 89% 74%,transparent 0 9rem,#e979a92a 9rem 9.15rem,transparent 9.15rem 10rem,#18ab9b26 10rem 10.15rem,transparent 10.15rem),
+    radial-gradient(ellipse at 6% 18%,#75efd542,transparent 42%),
+    radial-gradient(ellipse at 88% 87%,#ffa6c857,transparent 46%);
+}
+html body .dsc-send {background:linear-gradient(110deg,#13766e,#9a3769) !important;}
+#dsc-bubble {border-color:#28aa99;border-radius:16px 16px 3px 16px;box-shadow:3px 4px 0 #faacc6a6;}
+.miku-voice {display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:4px 10px 8px;order:20;font:12px/1.4 system-ui;color:#35514e;}
+.miku-voice button,.miku-voice select {appearance:auto;border:1px solid #7dbeb0;border-radius:12px;background:#e9fff8;color:#24574d;padding:4px 9px;font:inherit;}
+.miku-voice button {background:#ffe4ef;color:#773750;border-color:#db94af;cursor:pointer;}
+.miku-voice button:disabled {opacity:.65;}
+.miku-voice textarea {width:100%;color:#26443d;background:white;}
+.miku-prompt {width:min(430px,86vw);background:#fff9fc;border:1px solid #80cabe;border-radius:16px;padding:20px;color:#243f3d;}
+.miku-prompt::backdrop {background:#173c3840;}
+.miku-prompt textarea {display:block;box-sizing:border-box;width:100%;min-height:145px;padding:10px;color:#243f3d;background:white;border:1px solid #9dcfc5;border-radius:8px;}
+.miku-prompt button {margin-right:8px;background:#dbf5ec;padding:5px 12px;border-radius:8px;color:#174c49;}
+#dsc-bubble {box-sizing:border-box;overflow-wrap:anywhere;}
+.miku-recap-text {display:block;white-space:normal;overflow-wrap:anywhere;}
+#dsc-bubble.show .miku-recap-text {pointer-events:auto;}
+.miku-wordmark {font:700 16px/1.15 system-ui;letter-spacing:-.045em;color:#174c49;white-space:nowrap;}
+
+#miku-pinned-recap {position:fixed;z-index:32;box-sizing:border-box;padding:10px 14px;border-radius:16px 16px 3px 16px;border:2px solid #28aa99;background:#fffafd;color:#243f3d;box-shadow:3px 4px 0 #faacc6a6;font:600 13px/1.5 system-ui;cursor:pointer;word-break:keep-all;overflow-wrap:anywhere;}
+#miku-pinned-recap[hidden] {display:none!important;}
+
+#miku-pet-dock {display:none}
+html.miku-desktop,html.miku-desktop body {background:transparent!important;overflow:hidden!important}
+html.miku-desktop body::before,html.miku-desktop body::after {display:none!important}
+.miku-desktop #root {visibility:hidden}
+/* A glass disclosure anchored inside the pet window's left margin. */
+html.miku-desktop {--pet-chat-right:calc(var(--pet-canvas-center-right,125px) - (var(--pet-chat-width) + 38px) / 2);--pet-chat-bottom:calc(5px + var(--miku-dock-inset,0px));--pet-chat-width:min(196px,calc(100vw - 54px))}
+.miku-desktop #miku-pet-dock {display:block;position:fixed;right:calc(var(--pet-chat-right) + var(--pet-chat-width) + 8px);bottom:var(--pet-chat-bottom);z-index:100;color:#204640;font:600 12px system-ui}
+#miku-pet-toggle,#miku-pet-menu {
+  box-sizing:border-box;border:1px solid rgba(255,255,255,.88);
+  background:linear-gradient(140deg,rgba(248,255,255,.93),rgba(215,243,237,.83) 60%,rgba(253,230,241,.88));
+  backdrop-filter:blur(18px) saturate(1.3);
+  box-shadow:inset 0 1px 1px white,0 2px 6px #15393233;
+}
+#miku-pet-toggle {display:grid;place-items:center;width:30px;height:30px;border-radius:50%;padding:0;color:inherit;cursor:pointer}
+#miku-pet-toggle[aria-expanded="true"] svg {transform:rotate(180deg)}
+#miku-pet-menu {position:absolute;left:0;bottom:36px;display:grid;gap:3px;width:148px;padding:6px;border-radius:16px}
+#miku-pet-menu[hidden] {display:none}
+#miku-pet-menu button,#miku-pet-menu .miku-size-control {box-sizing:border-box;border:0;border-radius:9px;padding:7px 6px;background:transparent;color:inherit;font:inherit;text-align:left}
+#miku-pet-menu button {cursor:pointer}
+#miku-pet-menu button:hover,#miku-pet-menu button:focus-visible {background:#ffffffb8}
+#miku-pet-menu .miku-size-control {display:flex;align-items:center;justify-content:space-between}
+#miku-pet-menu select {max-width:61px}
+/* Reuse the active session's editor and send/stop action in the pet footer. */
+.miku-desktop #root,.miku-desktop #root :has(.dsc-composer) {display:contents!important}
+html.miku-desktop body .dsc-composer {
+  visibility:visible;position:fixed!important;box-sizing:border-box;left:auto!important;right:var(--pet-chat-right)!important;bottom:var(--pet-chat-bottom)!important;
+  top:auto!important;width:var(--pet-chat-width)!important;max-height:145px;overflow:auto;z-index:40;
+  display:grid;grid-template-columns:minmax(0,1fr) auto;gap:0 4px;align-items:center;padding:3px 5px 3px 0;
+  font-size:13px;line-height:22px;border-radius:18px;
+}
+html.miku-desktop .dsc-composer > [data-input-scroll] {grid-column:1;max-height:84px;margin:0;min-width:0}
+html.miku-desktop .dsc-composer > .GRgSLq_row {grid-column:2;container-type:normal;margin:0;padding:0}
+.miku-desktop .dsc-composer :is(.GRgSLq_tools,.GRgSLq_standardControls,.GRgSLq_activity) {display:none!important}
+.miku-desktop .dsc-composer .GRgSLq_input {min-height:28px;padding:3px 2px 3px 11px}
+.miku-desktop .dsc-composer .GRgSLq_placeholder {inset:3px 2px auto 11px}
+.miku-desktop .dsc-composer .GRgSLq_primary {width:28px;height:28px;transform:none}
+html.miku-desktop #miku-pet-menu {bottom:max(38px,var(--miku-pet-input-height,38px))}
+.miku-desktop .dsc-composer .miku-voice {display:none!important}
+
+
+/* Reserve a gutter in the transcript only. The composer and avatar keep their geometry. */
+html:not(.miku-desktop) body:has(#dsc-bubble.show, #miku-pinned-recap:not([hidden])) [data-conversation-scroll] [data-chat-flow]:not([data-chat-flow] [data-chat-flow]) {
+  width:auto;
+  margin-inline-end:max(clamp(104px,20%,180px),calc((100% - var(--dsh-chat-content-width)) / 2));
+}
+#miku-pinned-recap,#dsc-bubble,.miku-recap-text {overflow:visible;max-height:none;height:auto;overflow-wrap:anywhere;min-width:0}
+
+.miku-size-control select {font:inherit;color:inherit}
+
+.WOwLGG_headline .WOwLGG_titleGroup {display:none!important}
+.miku-voice #miku-options {display:flex;align-items:center;flex-wrap:wrap;gap:6px;width:100%;padding-top:4px}
+.miku-voice #miku-options[hidden] {display:none!important}
+.miku-voice .miku-icon,.miku-voice .miku-balance {display:inline-grid;place-items:center;min-width:30px;height:30px;padding:3px 6px;background:transparent;border:0;border-radius:8px;color:#315552}
+.miku-voice .miku-icon:hover,.miku-voice .miku-balance:hover {background:#ccede6}
+.miku-voice [data-recording="true"] {background:#ffccde;color:#a32654}
+.miku-voice [aria-expanded="true"] svg {transform:rotate(180deg)}
+.miku-monitor {margin-inline-start:auto}
+.miku-balance {font-variant-numeric:tabular-nums;font-weight:650!important}
+html:not(.miku-desktop) .dsc-composer:has(.miku-voice):not([data-miku-options]) :is(.GRgSLq_tools,.GRgSLq_standardControls,.GRgSLq_activity),
+.an3WzG_composerStack:has(.dsc-composer .miku-voice):not(:has([data-miku-options])) .an3WzG_heroWorkspaceRow {display:none!important}
+
+/* Both footer groups participate in the card layout. The native send/stop
+   control keeps its own column and its original React event handlers. */
+html:not(.miku-desktop) .dsc-composer:has(> .miku-voice):not([data-miku-options]):not(:has(.GRgSLq_activityExpanded)) {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) max-content;
+  column-gap:8px;
+  align-items:center;
+}
+.dsc-composer:has(> .miku-voice) > * {grid-column:1 / -1}
+html:not(.miku-desktop) .dsc-composer:not([data-miku-options]) > .miku-voice {
+  grid-column:1;
+  order:20;
+  min-width:0;
+  padding:0 0 8px 10px;
+}
+html:not(.miku-desktop) .dsc-composer:has(> .miku-voice):not([data-miku-options]) > .GRgSLq_row:not(:has(.GRgSLq_activityExpanded)) {
+  order:21;
+  grid-column:2;
+  container-type:normal;
+  padding:0 10px 8px 0;
+  margin:0;
+}
+html:not(.miku-desktop) .dsc-composer:has(> .miku-voice):not([data-miku-options]) .GRgSLq_primary {
+  transform:none;
+}
+
+/* Shared glass materials for Harness chrome. Keep the transcript on one quiet plane. */
+html body {
+  --miku-frost:blur(18px) saturate(135%);
+  --miku-pane:linear-gradient(145deg,#ffffffdf 0%,#f1fff88c 48%,#fff0f9b8 100%);
+  --miku-pop:linear-gradient(145deg,#fffffff2,#f4fffbec 52%,#fff3fbee);
+  --miku-edge:inset 0 1px 0 #fffffff5;
+  --miku-lift:0 8px 24px #234d4814;
+  --dsw-alias-bg-layer-1:#f7fffcaa!important;
+  --dsw-alias-bg-layer-2:#fbfffde8!important;
+  --dsw-alias-bg-layer-3:#eff9f6f0!important;
+  --dsw-alias-settings-card-fill:#ffffffa8!important;
+  --dsw-alias-button-floating-fill:#ffffffce!important;
+  --dsw-alias-interactive-bg-hover:#28877815!important;
+  --dsw-alias-interactive-bg-active:#26877828!important;
+  --dsw-specific-sidebar-nav-item-active-accent:#cff4eabf!important;
+}
+html:not(.miku-desktop) {
+  background:radial-gradient(ellipse at 12% 8%,#b8ede9a8,transparent 47%),
+    radial-gradient(ellipse at 95% 90%,#f5c7dba8,transparent 52%),
+    linear-gradient(135deg,#f1faf7d9,#fffbf9de)!important;
+}
+html:not(.miku-desktop) .wtg9ga_root {
+  background:var(--miku-pane);
+  backdrop-filter:var(--miku-frost);
+  box-shadow:inset -1px 0 #ffffffbd;
+}
+html body .dsc-composer {
+  background:var(--miku-pane)!important;
+  backdrop-filter:var(--miku-frost);
+  border:1px solid #78a69d9c!important;
+  box-shadow:var(--miku-edge),var(--miku-lift)!important;
+}
+html body .dsc-composer:has(.GRgSLq_input:focus-visible) {
+  box-shadow:var(--miku-edge),0 0 0 2px #389f934d,var(--miku-lift)!important;
+}
+html body :is(dialog,[role="dialog"],[role="menu"],[role="listbox"]):not(select) {
+  background:var(--miku-pop);
+  backdrop-filter:var(--miku-frost);
+  box-shadow:var(--miku-edge),0 14px 48px #1e423d26;
+}
+html body .miku-prompt::backdrop {background:#173b392e;backdrop-filter:blur(4px)}
+html body [class*="_userRow"] [class*="_bubble"] {
+  background:var(--miku-pane)!important;
+  border-color:#62ad9e47!important;
+  box-shadow:var(--miku-edge);
+}
+html body :is(.dsc-newsession,.dsc-send) {
+  background:linear-gradient(155deg,#388779,#326d69 53%,#8c4e70)!important;
+  box-shadow:inset 0 1px 1px #ffffff88,0 3px 10px #254f491f!important;
+}
+html body :is(#dsc-bubble,#miku-pinned-recap,#miku-pet-menu,#miku-pet-toggle) {
+  background:var(--miku-pop);color:#234741;
+  border-color:#83b9ad;backdrop-filter:var(--miku-frost);
+  box-shadow:var(--miku-edge),var(--miku-lift);
+}
+#dsc-bubble::after {border-color:#83b9ad}
+html body .dsc-composer .GRgSLq_input:focus-visible {outline:none}
+#miku-options :is(button,select,input:not([type="checkbox"])),.miku-prompt :is(button,textarea) {
+  background:linear-gradient(#ffffffed,#f0faf6d9);color:#284f48;
+  border-color:#81b3a6;box-shadow:inset 0 1px #fff;
+}
+html body :where(button,select,input,textarea,[tabindex]):focus-visible {outline:2px solid #307b77;outline-offset:2px}
+@media (prefers-reduced-transparency:reduce),(prefers-contrast:more) {
+  html body {--miku-frost:none;--miku-pane:#f3faf7;--miku-pop:#fcfffd;
+    --dsw-alias-settings-card-fill:#fff!important;--dsw-alias-bg-layer-1:#f3faf7!important;
+    --dsw-alias-bg-layer-2:#fcfffd!important;--dsw-alias-bg-layer-3:#eff8f4!important;}
+  html:not(.miku-desktop) {background:#eef7f4!important}
+}
+html.miku-desktop .wtg9ga_root {display:none!important}
+#miku-pet-menu:has(#miku-pet-workspaces) {width:min(228px,calc(100vw - 16px));max-height:calc(100vh - var(--pet-chat-bottom) - max(38px,var(--miku-pet-input-height,38px)) - 8px);overflow:auto}
+#miku-pet-workspaces {min-width:0;max-height:150px;overflow:auto;--dsh-sidebar-inline-padding:6px}
+html.miku-desktop #dsc-stage[data-miku-drop] {outline:2px solid #369d94;outline-offset:-2px;border-radius:12px;background:#d6fff32e}
+.miku-prompt {box-sizing:border-box;max-width:calc(100vw - 24px);max-height:calc(100vh - 24px);overflow:auto}
+#miku-options input:not([type="checkbox"]),.miku-prompt textarea {box-sizing:border-box;max-width:100%;min-width:0}
