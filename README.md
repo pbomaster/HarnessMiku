@@ -4,13 +4,15 @@
 
 DeepSeek Harness의 채팅과 작업공간에 Live2D 캐릭터를 더하는 비공식 팬 프로젝트입니다. v28 설치 키트는 기존 Harness의 모델 선택기를 사용하므로 같은 대화 UI에서 로컬 llama.cpp 모델이나 사용자가 등록한 클라우드 모델을 선택할 수 있습니다.
 
+![Harness Miku 시작 화면. 중앙의 채팅 입력창과 오른쪽 아래의 미쿠](docs/preview.webp)
+
 ## 준비와 설치
 
 1. macOS 13 이상의 Apple Silicon Mac에서 진행하세요.
 2. 제작자의 [공식 Ko-fi 배포 페이지](https://ko-fi.com/s/7bb9ac0243)에서 이용 조건을 읽고 원본 모델 ZIP을 직접 받으세요. `New1007-RetrynowMiku.zip`을 이 키트의 `Install.command` 옆에 두거나 설치 중 파일 선택 창에서 지정하세요.
 3. 키트 ZIP을 풀고 기존 하네스를 종료한 뒤 `Install.command`를 실행하세요. 터미널에서 설치 폴더로 이동해 `bash Install.command`를 실행해도 됩니다.
 4. 설치기는 DeepSeek 공식 mac-arm64 DMG(0.2.1-rc.5), 고정 커밋의 한국어 오버레이, 로컬 받아쓰기 엔진과 모델을 다운로드합니다. DMG 및 음성 다운로드의 해시와 원본 앱 서명을 검사하고 사용자 Mac에서 앱 복사본을 서명합니다. 이미 받은 DMG와 모델 ZIP 경로를 차례대로 지정하려면 `bash Install.command "/경로/New1007-RetrynowMiku.zip" "/경로/deepseek-harness-0.2.1-rc.5-mac-arm64.dmg"`를 사용하세요.
-5. Finder에서 `~/Applications/Harness Miku.app`을 실행하세요. 첫 화면에서 DeepSeek 로그인을 건너뛰고 로컬 모델을 설정할 수 있습니다.
+5. Finder에서 `~/Applications/Harness Miku.app`을 실행하세요. 첫 화면의 DeepSeek 계정 로그인은 원본 Harness의 기능입니다. 선택하면 브라우저에서 인증하고, 인증이 완료되면 작업공간으로 이동합니다. 직접 발급한 API 키나 로컬 모델을 사용하려면 로그인을 건너뛰고 아래 절차를 따르세요.
 
 Python 3 또는 Git이 없으면 설치기가 Apple 개발자 도구 설치 창을 엽니다. **설치**를 누르고 터미널을 열어 두세요. 두 도구가 준비되면 같은 창에서 앱 설치가 이어집니다.
 
