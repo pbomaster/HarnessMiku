@@ -24,15 +24,6 @@
   }
   const thighs = new URLSearchParams(location.search).get("framing") === "thighs";
   const still = document.getElementById("still");
-  if (thighs) {
-    still.classList.add("thighs");
-    still.onerror = () => {
-      still.onerror = null;
-      still.classList.remove("thighs");
-      still.src = "Private/miku/miku.png";
-    };
-    still.src = "Private/miku-framing.png";
-  }
   try {
     const view = document.getElementById("stage");
     const app = new PIXI.Application({view,backgroundAlpha:0,antialias:true,resolution:Math.min(devicePixelRatio,2),autoDensity:true});

@@ -2,7 +2,7 @@ import SwiftUI
 
 @main struct HarnessMikuApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    var body: some Scene { WindowGroup { Room() } }
+    var body: some Scene { WindowGroup { CharacterSetup { Room() } } }
 }
 
 private let jade = Color(red:0.09,green:0.44,blue:0.39)
@@ -10,14 +10,9 @@ private let jade = Color(red:0.09,green:0.44,blue:0.39)
 struct Room: View {
     @StateObject private var chat = Chat()
     @StateObject private var voice = Voice()
-    @ObservedObject private var installer = AugustInstaller.shared
-    @ObservedObject private var bonsaiInstaller = BonsaiMLXInstaller.large
-    @ObservedObject private var bonsai9Installer = BonsaiMLXInstaller.nine
-    @AppStorage(LocalMiku.modelKey) private var localModel = LocalMiku.Model.august
     @Environment(\.horizontalSizeClass) private var widthClass
     @Environment(\.dynamicTypeSize) private var type
     @Environment(\.scenePhase) private var scene
-    @AppStorage("chatRoute") private var chatRoute = ""
     @State private var needsKey = false
     @State private var settings = false
     @State private var expanded = false
@@ -28,7 +23,7 @@ struct Room: View {
     @FocusState private var typing: Bool
     @AppStorage("webSearchMode") private var searchMode = SearchMode.off
     @AppStorage("automaticVoice") private var automatic = false
-    @AppStorage("voiceID") private var voiceID = "f77a554c56df4c9caf578cb43e6bac43"
+    @AppStorage("voiceID") private var voiceID = ""
     @AppStorage("engine") private var engine = "s2.1-pro-free"
 
     var body: some View {
@@ -70,11 +65,8 @@ struct Room: View {
             .fullScreenCover(isPresented: $expanded) {
                 VoiceRoom(chat: chat, voice: voice, searchMode: searchMode, voiceID: voiceID, engine: engine)
             }
-            .sheet(isPresented:$settings,onDismiss:{ needsKey = (try? Service.credential()) == nil }) { Preferences(conversation: chat) }
+            .sheet(isPresented:$settings,onDismiss:{ needsKey = (try? Service.credential()) == nil }) { Preferences() }
             .onAppear { chat.resume(completion:{_ in}); needsKey = (try? Service.credential()) == nil; voice.onText = { text in chat.draft += (chat.draft.isEmpty ? "" : " ") + text } }
-            .onChange(of: scene == .active && (chat.localProgress != nil || installer.progress != nil || bonsaiInstaller.working || bonsai9Installer.working), initial: true) { _, active in
-                UIApplication.shared.isIdleTimerDisabled = active
-            }
             .onChange(of:scene) { _,value in if value == .background { voice.stop() } else if value == .active {chat.resume(completion:{_ in})} }
         }.tint(jade)
     }
@@ -118,7 +110,7 @@ struct Room: View {
                                 Label("방과 후, 창가 자리",systemImage:"sun.horizon").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
                                 Text("오늘은 무슨 얘기 할까?").font(.title3.bold())
                                 Text("글을 쓰거나 마이크를 눌러 미쿠에게 말을 걸어 줘.").font(.subheadline).foregroundStyle(.secondary)
-                                if needsKey && chatRoute != "local" {
+                                if needsKey {
                                     Button { settings = true } label: { Label("DeepSeek 연결",systemImage:"key").frame(minHeight:44) }
                                 }
                             }.padding(.vertical,12)
@@ -126,12 +118,11 @@ struct Room: View {
                         ForEach(chat.lines) { line in bubble(line).id(line.id) }
                         if chat.waiting { HStack {
                             ProgressView()
-                            Text(chat.localProgress ?? "미쿠가 답하는 중").font(.caption)
-                            if chat.localProgress != nil { Button("중지") { chat.stopLocalReply() } }
+                            Text("미쿠가 답하는 중").font(.caption)
                         } }
                         if let error = chat.problem {
                             Text(error).font(.callout).foregroundStyle(.red)
-                            if chat.lines.last?.role == "user" && !chat.waiting { Button("다시 요청") { send(retry:true) } }
+                            if chat.lines.last?.role == "user" && chat.lines.last?.local != true && !chat.waiting { Button("다시 요청") { send(retry:true) } }
                         }
                         Color.clear.frame(height:1).id("end")
                     }.padding(12)
@@ -151,8 +142,8 @@ struct Room: View {
                     ForEach(SearchMode.allCases, id: \.self) { mode in Text(mode.title).tag(mode) }
                 }
             } label: {
-                Label(chatRoute == "local" ? localModel.title + " · 기기 내 대화" : "웹 검색 · " + searchMode.title, systemImage: "globe").font(.caption)
-            }.disabled(chat.waiting || chatRoute == "local")
+                Label("웹 검색 · " + searchMode.title, systemImage: "globe").font(.caption)
+            }.disabled(chat.waiting)
             HStack(alignment:.bottom,spacing:4) {
                 Button { typing=false; if voice.mode == .recording { voice.finishRecording() } else { Task { await voice.listen() } } } label: {
                     Image(systemName:voice.mode == .recording ? "stop.circle.fill" : "mic").frame(width:44,height:44)

@@ -62,8 +62,6 @@ SOFTWARE.
 - **RetrynowMiku** — 일러스트 Ruby_呜哔うび, Live2D 리깅 慈善小霓. 사용자가 제작자의 공식 페이지에서 직접 받은 원본을 개인 Mac에서 사용합니다. 모델 파일, 수정본 및 모델을 포함한 완성 앱을 재배포하지 마세요. 개인 비상업적 사용 및 수익화 방송 제한 등은 제작자의 조건을 따릅니다. [공식 배포 및 이용 조건](https://ko-fi.com/s/7bb9ac0243)
 - **いますぐ輪廻** — 음악 なきそ, MV channel. 캐릭터 연출에 영감을 준 작품입니다. 작품 크레딧은 README의 Acknowledgements에도 수록했습니다. [공식 MV](https://youtu.be/3iUgKH8c7p4)
 
-## 음성 및 로컬 추론
+## 음성
 
-- 받아쓰기를 위해 설치기가 sherpa-onnx v1.12.14와 SenseVoice INT8 모델을 별도 다운로드합니다. 엔진과 모델 가중치의 조건은 각 배포처에서 확인하세요. [엔진](https://github.com/k2-fsa/sherpa-onnx/releases/tag/v1.12.14) · [모델 배포](https://github.com/k2-fsa/sherpa-onnx/releases/tag/asr-models) · [SenseVoice](https://github.com/FunAudioLLM/SenseVoice)
-- llama.cpp와 GGUF 가중치는 사용자가 준비합니다. 가중치에는 선택한 모델의 사용권이 적용됩니다. [llama.cpp](https://github.com/ggml-org/llama.cpp)
 - Fish Audio는 선택 가능한 외부 음성 합성 서비스입니다. 본인이 사용 권한을 확보한 참조 음성을 지정하세요. [Fish Audio](https://fish.audio/)

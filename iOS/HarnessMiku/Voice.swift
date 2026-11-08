@@ -68,7 +68,6 @@ import Speech
         }
         self.recognizer = recognizer
         let request = SFSpeechURLRecognitionRequest(url:file)
-        if LocalMiku.selected && !recognizer.supportsOnDeviceRecognition { stop(); problem = "이 기기에 한국어 받아쓰기가 필요해."; return }
         request.requiresOnDeviceRecognition = recognizer.supportsOnDeviceRecognition
         request.shouldReportPartialResults = false
         let ticket = token

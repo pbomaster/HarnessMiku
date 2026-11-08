@@ -87,13 +87,55 @@ Install.command
 Repair-Permissions.command
 Update.command
 packaging/build-mac.sh
+packaging/build-ios.sh
 packaging/mac-installer.swift
 packaging/verify.py
 setup-sensevoice.sh""".split())
+SOURCE |= set("""iOS/.gitignore
+iOS/HarnessMiku.xcodeproj/project.pbxproj
+iOS/HarnessMiku.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+iOS/HarnessMiku.xcodeproj/xcshareddata/xcschemes/HarnessMiku.xcscheme
+iOS/HarnessMiku/Account.swift
+iOS/HarnessMiku/Alerts.swift
+iOS/HarnessMiku/App.swift
+iOS/HarnessMiku/Assets.xcassets/AppIcon.appiconset/Contents.json
+iOS/HarnessMiku/Assets.xcassets/AppIcon.appiconset/Icon.png
+iOS/HarnessMiku/Assets.xcassets/Contents.json
+iOS/HarnessMiku/CharacterSetup.swift
+iOS/HarnessMiku/Chat.swift
+iOS/HarnessMiku/FishSpeech.swift
+iOS/HarnessMiku/HandsFreeInput.swift
+iOS/HarnessMiku/LipSync.swift
+iOS/HarnessMiku/Preferences.swift
+iOS/HarnessMiku/Push.entitlements
+iOS/HarnessMiku/Services.swift
+iOS/HarnessMiku/Stage.swift
+iOS/HarnessMiku/Stage/actor.js
+iOS/HarnessMiku/Stage/index.html
+iOS/HarnessMiku/Stage/model-hashes.json
+iOS/HarnessMiku/Stage/persona.txt
+iOS/HarnessMiku/Stage/touch.js
+iOS/HarnessMiku/Voice.swift
+iOS/HarnessMiku/VoiceRoom.swift
+iOS/LICENSE
+iOS/Mac-Notices.md
+iOS/Prepare.command
+iOS/README.md
+iOS/Relay/README.md
+iOS/Relay/server.mjs
+iOS/Tools/Tests/PromptChecks.swift
+iOS/Tools/check-prompts.sh
+iOS/Tools/check-sdk.sh
+iOS/Tools/miku-mark.svg
+iOS/Tools/pr7-gpu.patch
+iOS/Tools/prepare.py
+iOS/Verify-Simulator.command""".split())
 DENIED = set(json.loads(Path("hashes.json").read_text()).values())
 PREVIEW_HASH = "cb86d22aee74164837d93104058a486a6bb81da6280104d8b8ea3c9974ccc903"
 def audit(name, data):
     digest = hashlib.sha256(data).hexdigest()
+    if name == 'iOS/HarnessMiku/Assets.xcassets/AppIcon.appiconset/Icon.png' and digest == '9042549d33f9b8af05be7090178266af92487fcac87ff04295d45e29017d17f2':
+        return
     if name == 'docs/preview.webp' and digest == PREVIEW_HASH:
         return
     if digest in DENIED or data.startswith((b'MOC3',b'PK\x03\x04',b'\x89PNG',b'RIFF',b'\xff\xd8')):

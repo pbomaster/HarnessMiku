@@ -5,7 +5,6 @@ import UIKit
     @Published var lines:[Line]=[]
     @Published var draft=""
     @Published var waiting=false
-    @Published private(set) var localProgress: String?
     @Published var problem:String?
     private var task:Task<Void,Never>?
     private var generation=UUID()
@@ -23,28 +22,25 @@ import UIKit
     func send(searchMode:SearchMode, retry:Bool=false, spokenText: String? = nil,completion:@escaping (String)->Void) {
         guard !waiting else{return}
         if pending != nil {
-            if LocalMiku.selected { problem = "이전 중계 답변이 남아 있어. DeepSeek 모드에서 받은 뒤 다시 시도해 줘." }
-            else { resume(completion: completion) }
+            resume(completion: completion)
             return
         }
         let text=(spokenText ?? draft).trimmingCharacters(in:.whitespacesAndNewlines)
         guard retry ? lines.last?.role=="user" : !text.isEmpty else{return}
-        let local = LocalMiku.selected
-        let localModel = LocalMiku.model
         do {
-            if !local { _ = try Service.credential() }
+            _ = try Service.credential()
             if retry {
-                guard (lines.last?.local == true) == local else { throw MikuError("이 메시지를 보냈던 대화 모델로 바꾼 뒤 다시 시도해 줘.") }
+                guard lines.last?.local != true else { throw MikuError("이전 기기 전용 메시지는 다시 보낼 수 없어.") }
                 lines[lines.count - 1].searchMode = searchMode
             } else {
-                guard (local && localModel == .bonsai) || text.count<=8000 else{throw MikuError("한 번에 8,000자까지 보낼 수 있어.")}
-                lines.append(Line(local:local,searchMode:searchMode,role:"user",content:text))
+                guard text.count<=8000 else{throw MikuError("한 번에 8,000자까지 보낼 수 있어.")}
+                lines.append(Line(searchMode:searchMode,role:"user",content:text))
                 if spokenText == nil { draft="" }
             }
         } catch {problem=error.localizedDescription;return}
-        let id=UUID(),snapshot=lines.filter { ($0.local == true) == local }
+        // Earlier releases stored device-only turns beside remote turns.
+        let id=UUID(),snapshot=lines.filter { $0.local != true }
         generation=id;waiting=true;problem=nil;save()
-        localProgress = local ? "\(localModel.title) 여는 중" : nil
         let useRelay=UserDefaults.standard.bool(forKey:"remoteReply") && UserDefaults.standard.bool(forKey:"replyAlerts")
         task=Task {
             // Cover the short transition into background; iOS controls the deadline.
@@ -55,20 +51,9 @@ import UIKit
             defer {if bg != .invalid {UIApplication.shared.endBackgroundTask(bg)}}
             do {
                 try Task.checkCancellation()
-                if let last = snapshot.last, (local || last.effectiveSearchMode != .always),
+                if let last = snapshot.last, last.effectiveSearchMode != .always,
                    let reply = ConversationFacts.clockReply(to: last.content), generation == id {
-                    finish(reply, id, [], completion, local: local)
-                    return
-                }
-                if local {
-                    let reply = try await LocalMiku.reply(snapshot, model: localModel) { status in
-                        Task { @MainActor in
-                            if self.generation == id && self.waiting { self.localProgress = status }
-                        }
-                    }
-                    try Task.checkCancellation()
-                    guard generation == id else { return }
-                    finish(reply, id, [], completion, local: true)
+                    finish(reply, id, [], completion)
                     return
                 }
                 let route = try await Service.modelRoute()
@@ -94,11 +79,11 @@ import UIKit
                     guard generation==id else{return}
                     finish(reply,id,sources,completion);await Alerts.local(id)
                 }
-            } catch {if generation==id {waiting=false;localProgress=nil;problem=error.localizedDescription}}
+            } catch {if generation==id {waiting=false;problem=error.localizedDescription}}
         }
     }
     func resume(completion:@escaping(String)->Void){
-        guard !LocalMiku.selected, !waiting,let job=pending else{return}
+        guard !waiting,let job=pending else{return}
         generation=job.id;waiting=true;problem=nil
         task=Task {
             do {try await poll(job,completion)}
@@ -121,20 +106,12 @@ import UIKit
             }
         }
     }
-    private func finish(_ reply:String,_ id:UUID,_ sources:[WebSource],_ completion:(String)->Void, local: Bool = false){
-        pending=nil;waiting=false;localProgress=nil;problem=nil
+    private func finish(_ reply:String,_ id:UUID,_ sources:[WebSource],_ completion:(String)->Void){
+        pending=nil;waiting=false;problem=nil
         let directed = Performance(reply).tone == nil ? "[soft]\n" + reply : reply
-        lines.append(Line(local:local,sources:sources,id:id,role:"assistant",content:directed));save();completion(directed)
+        lines.append(Line(sources:sources,id:id,role:"assistant",content:directed));save();completion(directed)
     }
-    func stopLocalReply() {
-        guard localProgress != nil else { return }
-        generation = UUID()
-        task?.cancel()
-        localProgress = nil
-        waiting = false
-        problem = "답변 생성을 중지했어."
-    }
-    func clear(){localProgress=nil;generation=UUID();task?.cancel();waiting=false;pending=nil;lines=[];draft="";problem=nil;save()}
+    func clear(){generation=UUID();task?.cancel();waiting=false;pending=nil;lines=[];draft="";problem=nil;save()}
     private func save(){
         do {
             try FileManager.default.createDirectory(at:url.deletingLastPathComponent(),withIntermediateDirectories:true)

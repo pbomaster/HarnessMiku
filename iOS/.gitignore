@@ -3,13 +3,10 @@ HarnessMiku/Stage/*
 !HarnessMiku/Stage/actor.js
 !HarnessMiku/Stage/index.html
 !HarnessMiku/Stage/touch.js
-!HarnessMiku/Stage/*-persona.txt
 !HarnessMiku/Stage/persona.txt
-!HarnessMiku/Stage/bonsai-27b-text.json
 **/Private*/
 ModelAssets/
 Vendor/*
-!Vendor/llama-LICENSE.txt
 *.xcframework/
 *.assetpack/
 *.xcarchive/
@@ -40,3 +37,4 @@ xcuserdata/
 .build/
 DerivedData/
 .DS_Store
+!HarnessMiku/Stage/model-hashes.json

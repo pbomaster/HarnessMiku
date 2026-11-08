@@ -97,7 +97,6 @@ struct SpeechEndpoint {
             let req = SFSpeechAudioBufferRecognitionRequest()
             req.shouldReportPartialResults = true
             req.taskHint = .dictation
-            if LocalMiku.selected && !recognizer.supportsOnDeviceRecognition { throw MikuError("이 기기에 한국어 받아쓰기가 필요해.") }
             req.requiresOnDeviceRecognition = recognizer.supportsOnDeviceRecognition
             request = req
             input.installTap(onBus: 0, bufferSize: 1024, format: nil, block: Self.tap(req) { [weak self] level, now in

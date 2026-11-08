@@ -6,8 +6,12 @@ private final class StageFiles: NSObject, WKURLSchemeHandler {
     let root = Bundle.main.bundleURL.appendingPathComponent("Stage").standardizedFileURL
     func webView(_ webView: WKWebView, start task: WKURLSchemeTask) {
         guard let url = task.request.url, url.host == "stage" else { task.didFailWithError(URLError(.badURL)); return }
-        let file = root.appendingPathComponent(url.path).standardizedFileURL
-        guard file.path.hasPrefix(root.path + "/"), let data = try? Data(contentsOf:file,options:.mappedIfSafe) else {
+        let modelPrefix = "/Private/miku/"
+        let model = url.path.hasPrefix(modelPrefix)
+        let base = model ? CharacterFiles.root : root
+        let relative = model ? String(url.path.dropFirst(modelPrefix.count)) : url.path
+        let file = base.appendingPathComponent(relative).standardizedFileURL
+        guard file.path.hasPrefix(base.path + "/"), let data = try? Data(contentsOf:file,options:.mappedIfSafe) else {
             task.didFailWithError(URLError(.fileDoesNotExist)); return
         }
         let type = ["js":"application/javascript","html":"text/html","json":"application/json","png":"image/png"][file.pathExtension] ?? "application/octet-stream"

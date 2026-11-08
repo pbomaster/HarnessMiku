@@ -38,7 +38,7 @@ struct VoiceRoom: View {
         }
         .task(id: turn) {
             guard let id = turn else { return }
-            do { if !LocalMiku.selected { _ = try Service.credential() } }
+            do { _ = try Service.credential() }
             catch { roomError = error.localizedDescription; pause(); return }
             if !firstTurn { try? await Task.sleep(for: .milliseconds(300)) }
             firstTurn = false

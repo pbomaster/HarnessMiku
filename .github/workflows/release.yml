@@ -46,8 +46,37 @@ jobs:
         with: {subject-path: HarnessMiku-Mac.dmg}
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with: {name: reviewed-dmg, path: HarnessMiku-Mac.dmg}
+  ios:
+    runs-on: macos-26
+    permissions: {contents: read, id-token: write, attestations: write}
+    outputs:
+      available: ${{ steps.sdk.outputs.available }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false}
+      - id: sdk
+        name: Locate the required iOS 27.2 SDK
+        run: |
+          for dev in /Applications/Xcode*.app/Contents/Developer; do
+            version=$(DEVELOPER_DIR="$dev" xcrun --sdk iphoneos --show-sdk-version 2>/dev/null) || continue
+            case "$version" in 27.2|27.2.*)
+              echo "DEVELOPER_DIR=$dev" >> "$GITHUB_ENV"
+              echo "available=true" >> "$GITHUB_OUTPUT"
+              exit 0;;
+            esac
+          done
+          echo "available=false" >> "$GITHUB_OUTPUT"
+          echo "::warning::Required iOS 27.2 SDK unavailable on this runner."
+      - if: steps.sdk.outputs.available == 'true'
+        run: bash packaging/build-ios.sh "$PWD/HarnessMiku-iOS.ipa"
+      - if: steps.sdk.outputs.available == 'true'
+        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be
+        with: {subject-path: HarnessMiku-iOS.ipa}
+      - if: steps.sdk.outputs.available == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with: {name: reviewed-ipa, path: HarnessMiku-iOS.ipa, if-no-files-found: error}
   publish:
-    needs: [kits, mac]
+    needs: [kits, mac, ios]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     permissions: {actions: read, contents: write, attestations: read}
@@ -58,24 +87,23 @@ jobs:
           set -euo pipefail
           gh run download "$GITHUB_RUN_ID" -n reviewed-kits -D release
           gh run download "$GITHUB_RUN_ID" -n reviewed-dmg -D release
+          if [[ "${{ needs.ios.outputs.available }}" == true ]]; then
+            gh run download "$GITHUB_RUN_ID" -n reviewed-ipa -D release
+          fi
           cd release
-          for file in *.exe *.dmg; do gh attestation verify "$file" -R "$GH_REPO" --signer-workflow "$GH_REPO/.github/workflows/release.yml"; done
-          sha256sum *.exe *.dmg *.zip > SHA256SUMS.txt
-          base="https://github.com/$GH_REPO/releases/download/v0.0.3"
+          shopt -s nullglob
+          for file in *.exe *.dmg *.ipa; do gh attestation verify "$file" -R "$GH_REPO" --signer-workflow "$GH_REPO/.github/workflows/release.yml"; done
+          sha256sum *.exe *.dmg *.ipa *.zip > SHA256SUMS.txt
           cat > ../notes <<EOF
-          ## 설치 및 다운로드
+          Windows x64는 EXE, Apple Silicon Mac은 DMG를 열고 제작자 원본 ZIP을 선택하세요. ZIP 설치 키트와 소스도 함께 제공합니다.
 
-          | Windows x64 | macOS Apple Silicon | 소스 및 검증 |
-          |---|---|---|
-          | [원클릭 EXE]($base/HarnessMiku-Windows-x64-Setup.exe) · [설치 ZIP]($base/HarnessMiku-Windows-x64.zip) | [설치 DMG]($base/HarnessMiku-Mac.dmg) · [설치 ZIP]($base/HarnessMiku-Mac.zip) | [소스 ZIP]($base/HarnessMiku-source.zip) · [SHA256SUMS]($base/SHA256SUMS.txt) |
+          iOS 0.1.0 (24)는 처음 실행할 때 파일 앱에서 캐릭터 ZIP을 가져옵니다. 로그인 또는 API 키로 대화하며, 기기 내 언어 모델은 사용하지 않습니다.
 
-          [제작자에게서 모델 ZIP을 직접 받으세요](https://ko-fi.com/s/7bb9ac0243). Windows에서는 EXE를 실행하세요. Mac에서는 DMG 안의 설치 앱을 실행하세요. 파일 선택 창에서 원본 모델 ZIP을 지정하면 됩니다.
-
-          설치 후 **설정 → 모델 → ChatGPT 구독으로 로그인**을 누르고 OpenAI 기기 코드 인증을 마친 다음 새 세션에서 Codex 모델을 선택하세요. 실제 이용 가능 여부는 OpenAI 계정에 따릅니다.
-
-          공개 Actions에서 두 플랫폼의 설치기를 만들고 포함 파일을 검사했습니다. 모델 원본과 텍스처는 배포하지 않습니다. EXE와 DMG에는 GitHub 빌드 출처 증명이 있습니다. Windows 게시자 서명과 Apple 공증은 없습니다. [자세한 설치 및 검증 안내](https://github.com/$GH_REPO/blob/v0.0.3/README.md).
-
-          ## SHA-256
+          [설치 및 첫 실행 안내](https://github.com/$GH_REPO/blob/v0.1.0/README.md)
           EOF
-          printf '\n```text\n' >> ../notes; cat SHA256SUMS.txt >> ../notes; printf '```\n' >> ../notes
-          gh release create v0.0.3 ./* --target "$GITHUB_SHA" --title 'Harness Miku v0.0.3 · ChatGPT 로그인 · Windows & macOS' --notes-file ../notes
+          if [[ -f HarnessMiku-iOS.ipa ]]; then
+            echo 'iOS IPA는 개인 서명 정보가 없는 기기용 빌드입니다.' >> ../notes
+          else
+            echo '이 릴리즈의 iOS는 소스만 제공됩니다. 빌드 러너에 iOS 27.2 SDK가 없어 IPA를 생성하지 못했습니다.' >> ../notes
+          fi
+          gh release create v0.1.0 ./* --target "$GITHUB_SHA" --title 'Harness Miku v0.1.0' --notes-file ../notes

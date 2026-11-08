@@ -153,7 +153,7 @@ enum Service {
         return data
     }
     static var accountRoute: Bool {
-        if let route=UserDefaults.standard.string(forKey:"chatRoute"), !route.isEmpty { return route=="account" }
+        if let route = UserDefaults.standard.string(forKey: "chatRoute"), ["account", "api"].contains(route) { return route == "account" }
         return (try? Keys.read(.chat))?.isEmpty != false
     }
     static func credential() throws -> String {

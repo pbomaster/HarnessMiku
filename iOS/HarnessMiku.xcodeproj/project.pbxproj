@@ -9,30 +9,12 @@
   B91900000000000000000002 = { isa = PBXBuildFile; fileRef = B91900000000000000000001; };
   B91900000000000000000003 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishSpeech.swift; sourceTree = "<group>"; };
   B91900000000000000000004 = { isa = PBXBuildFile; fileRef = B91900000000000000000003; };
-  B91800000000000000000001 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelInstallOperation.swift; sourceTree = "<group>"; };
-  B91800000000000000000002 = { isa = PBXBuildFile; fileRef = B91800000000000000000001; };
-  B91700000000000000000001 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AugustMLXInference.swift; sourceTree = "<group>"; };
-  B91700000000000000000002 = { isa = PBXBuildFile; fileRef = B91700000000000000000001; };
-  B91600000000000000000001 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bonsai9Pack.swift; sourceTree = "<group>"; };
-  B91600000000000000000002 = { isa = PBXBuildFile; fileRef = B91600000000000000000001; };
-  B91600000000000000000003 = { isa = XCLocalSwiftPackageReference; relativePath = Packages/MikuBonsaiMLX; };
-  B91600000000000000000004 = { isa = XCSwiftPackageProductDependency; package = B91600000000000000000003; productName = MikuBonsaiMLX; };
-  B91600000000000000000005 = { isa = PBXBuildFile; productRef = B91600000000000000000004; };
-  B27100000000000000000001 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BonsaiPack.swift; sourceTree = "<group>"; };
-  B27100000000000000000002 = { isa = PBXBuildFile; fileRef = B27100000000000000000001; };
-  B11000000000000000000001 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AugustPack.swift; sourceTree = "<group>"; };
-  B11000000000000000000002 = { isa = PBXBuildFile; fileRef = B11000000000000000000001; };
-  B80000000000000000000001 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalMiku.swift; sourceTree = "<group>"; };
-  B80000000000000000000002 = { isa = PBXBuildFile; fileRef = B80000000000000000000001; };
-  B80000000000000000000003 = { isa = PBXFileReference; lastKnownFileType = file; path = "ModelAssets/Miku-August-8B-Memory-Q4_K_M.gguf"; sourceTree = SOURCE_ROOT; };
-  B80000000000000000000004 = { isa = PBXBuildFile; fileRef = B80000000000000000000003; settings = { ASSET_TAGS = ("miku-august-q4"); }; };
-  B80000000000000000000005 = { isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = "Vendor/llama.xcframework"; sourceTree = SOURCE_ROOT; };
-  B8000000000000000000000A = { isa = PBXBuildFile; fileRef = B80000000000000000000005; };
-  B80000000000000000000006 = { isa = PBXBuildFile; fileRef = B80000000000000000000005; settings = { ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy); }; };
-  B80000000000000000000007 = { isa = PBXCopyFilesBuildPhase; buildActionMask = 2147483647; dstPath = ""; dstSubfolderSpec = 10; files = (B80000000000000000000006); name = "Embed local inference library"; runOnlyForDeploymentPostprocessing = 0; };
-  B80000000000000000000008 = { isa = PBXFileReference; lastKnownFileType = text; path = "Vendor/llama-LICENSE.txt"; sourceTree = SOURCE_ROOT; };
-  B80000000000000000000009 = { isa = PBXBuildFile; fileRef = B80000000000000000000008; };
 
+  A24000000000000000000001 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CharacterSetup.swift; sourceTree = "<group>"; };
+  A24000000000000000000002 = { isa = PBXBuildFile; fileRef = A24000000000000000000001; };
+  A24000000000000000000003 = { isa = XCRemoteSwiftPackageReference; repositoryURL = "https://github.com/weichsel/ZIPFoundation.git"; requirement = { kind = revision; revision = 02b6abe5f6eef7e3cbd5f247c5cc24e246efcfe0; }; };
+  A24000000000000000000004 = { isa = XCSwiftPackageProductDependency; package = A24000000000000000000003; productName = ZIPFoundation; };
+  A24000000000000000000005 = { isa = PBXBuildFile; productRef = A24000000000000000000004; };
   "B60000000000000000000001" = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceRoom.swift; sourceTree = "<group>"; };
   "C60000000000000000000001" = { isa = PBXBuildFile; fileRef = "B60000000000000000000001"; };
   "B60000000000000000000000" = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandsFreeInput.swift; sourceTree = "<group>"; };
@@ -152,7 +134,7 @@
   "7D1043473D55BFA90E8530D3" = {
   "isa" = "PBXGroup";
   "path" = "HarnessMiku";
-  "children" = ( B91900000000000000000003, B91900000000000000000001, B91800000000000000000001, B91700000000000000000001, B91600000000000000000001, B27100000000000000000001, B11000000000000000000001, B80000000000000000000001, B80000000000000000000003, B80000000000000000000005, B80000000000000000000008, "B60000000000000000000000", "6D4259BE1A71C5F40F019B90", "377FC72B5DFFFEFA5A4D51BC", "4411227784337DBB3AE28994", "49CCAAE1F32216FE15D05F42", "6EAEBFB3A7659F9B7C359ADC", "1200156F9FDB3A662D94CF69", "676043B71262517ADC55E5F3", "B60000000000000000000001", "AF5B965B3A2F5D341B3E15DE", "CA6D0E3AAA7D6CC0E9D9FE14", "28AAD1477D5182D66D4B03B3" );
+  "children" = ( A24000000000000000000001, B91900000000000000000003, B91900000000000000000001, "B60000000000000000000000", "6D4259BE1A71C5F40F019B90", "377FC72B5DFFFEFA5A4D51BC", "4411227784337DBB3AE28994", "49CCAAE1F32216FE15D05F42", "6EAEBFB3A7659F9B7C359ADC", "1200156F9FDB3A662D94CF69", "676043B71262517ADC55E5F3", "B60000000000000000000001", "AF5B965B3A2F5D341B3E15DE", "CA6D0E3AAA7D6CC0E9D9FE14", "28AAD1477D5182D66D4B03B3" );
   "sourceTree" = "<group>";
 };
   "FBDC4F23F93125BBEEAE800C" = {
@@ -164,24 +146,24 @@
   "BCE16DD0260827ECF338C787" = {
   "isa" = "PBXSourcesBuildPhase";
   "buildActionMask" = "2147483647";
-  "files" = ( B91900000000000000000004, B91900000000000000000002, B91800000000000000000002, B91700000000000000000002, B91600000000000000000002, B27100000000000000000002, B11000000000000000000002, B80000000000000000000002, "670CC622084DD6C9EA83E090", "10FC6E8B99962908F30146E2", "9E1FBDCF039160110E2ED74F", "E265C13AB3C02B1CF37C5CF8", "284A8B1E1A0C95F521C3CEA8", "67DED845EB0AA5BBB0AE3A15", "E587694CA7F8FB2EE25A24AF", "C60000000000000000000000", "C60000000000000000000001", "B51109F4592B4B5511B762CD" );
+  "files" = ( A24000000000000000000002, B91900000000000000000004, B91900000000000000000002, "670CC622084DD6C9EA83E090", "10FC6E8B99962908F30146E2", "9E1FBDCF039160110E2ED74F", "E265C13AB3C02B1CF37C5CF8", "284A8B1E1A0C95F521C3CEA8", "67DED845EB0AA5BBB0AE3A15", "E587694CA7F8FB2EE25A24AF", "C60000000000000000000000", "C60000000000000000000001", "B51109F4592B4B5511B762CD" );
   "runOnlyForDeploymentPostprocessing" = "0";
 };
   "0189424A5A60FED329FA868E" = {
   "isa" = "PBXResourcesBuildPhase";
   "buildActionMask" = "2147483647";
-  "files" = ( B80000000000000000000004, B80000000000000000000009, "D813B61DC78E32557F7543FC", "222F0DBFFE5EB23DCD3FD16F" );
+  "files" = ( "D813B61DC78E32557F7543FC", "222F0DBFFE5EB23DCD3FD16F" );
   "runOnlyForDeploymentPostprocessing" = "0";
 };
   "7561BFB015D8F536760CB671" = {
   "isa" = "PBXFrameworksBuildPhase";
   "buildActionMask" = "2147483647";
-  "files" = ( B91600000000000000000005, B8000000000000000000000A );
+  "files" = (A24000000000000000000005);
   "runOnlyForDeploymentPostprocessing" = "0";
 };
   "D56D985300D4B52EB6E189BE" = {
   "isa" = "PBXShellScriptBuildPhase";
-  "name" = "Check SDK and private assets";
+  "name" = "Check SDK and renderer";
   "alwaysOutOfDate" = "1";
   "buildActionMask" = "2147483647";
   "files" = (  );
@@ -224,7 +206,6 @@
   "7082CC0B6FC1282FCEABD07A" = {
   "isa" = "XCBuildConfiguration";
   "buildSettings" = {
-  "ENABLE_ON_DEMAND_RESOURCES" = YES;
   "LD_RUNPATH_SEARCH_PATHS" = ("$(inherited)", "@executable_path/Frameworks");
   "PRODUCT_NAME" = "HarnessMiku";
   "PRODUCT_BUNDLE_IDENTIFIER" = "local.personal.HarnessMiku";
@@ -245,7 +226,7 @@
   "CODE_SIGN_ENTITLEMENTS" = "HarnessMiku/Push.entitlements";
   "ASSETCATALOG_COMPILER_APPICON_NAME" = "AppIcon";
   "MARKETING_VERSION" = "0.1.0";
-  "CURRENT_PROJECT_VERSION" = "23";
+  "CURRENT_PROJECT_VERSION" = "24";
   "ENABLE_PREVIEWS" = "YES";
 };
   "name" = "Debug";
@@ -253,7 +234,6 @@
   "639A7CA24D39909E713B47F7" = {
   "isa" = "XCBuildConfiguration";
   "buildSettings" = {
-  "ENABLE_ON_DEMAND_RESOURCES" = YES;
   "LD_RUNPATH_SEARCH_PATHS" = ("$(inherited)", "@executable_path/Frameworks");
   "PRODUCT_NAME" = "HarnessMiku";
   "PRODUCT_BUNDLE_IDENTIFIER" = "local.personal.HarnessMiku";
@@ -274,7 +254,7 @@
   "CODE_SIGN_ENTITLEMENTS" = "HarnessMiku/Push.entitlements";
   "ASSETCATALOG_COMPILER_APPICON_NAME" = "AppIcon";
   "MARKETING_VERSION" = "0.1.0";
-  "CURRENT_PROJECT_VERSION" = "23";
+  "CURRENT_PROJECT_VERSION" = "24";
   "ENABLE_PREVIEWS" = "YES";
 };
   "name" = "Release";
@@ -287,19 +267,19 @@
 };
   "0E8A3AD980EC179856012B7E" = {
   "isa" = "PBXNativeTarget";
-  packageProductDependencies = (B91600000000000000000004);
+  packageProductDependencies = (A24000000000000000000004);
   "name" = "HarnessMiku";
   "productName" = "HarnessMiku";
   "productType" = "com.apple.product-type.application";
   "productReference" = "38A007151ABE87CC01A5B6E9";
   "buildConfigurationList" = "F497FD0CF9CA1625C4A860DE";
-  "buildPhases" = ( "D56D985300D4B52EB6E189BE", "BCE16DD0260827ECF338C787", "7561BFB015D8F536760CB671", "0189424A5A60FED329FA868E", B80000000000000000000007 );
+  "buildPhases" = ( "D56D985300D4B52EB6E189BE", "BCE16DD0260827ECF338C787", "7561BFB015D8F536760CB671", "0189424A5A60FED329FA868E" );
   "buildRules" = (  );
   "dependencies" = (  );
 };
   "98F54143AB4E86B28C3AFEE0" = {
   "isa" = "PBXProject";
-  packageReferences = (B91600000000000000000003);
+  packageReferences = (A24000000000000000000003);
   "attributes" = {
   "BuildIndependentTargetsInParallel" = "YES";
 };
