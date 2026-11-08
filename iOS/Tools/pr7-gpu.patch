@@ -1,0 +1,140 @@
+--- cubism4.patched.js
++++ cubism4.patched.js
+@@ -3204,20 +3204,7 @@ var __async = (__this, __arguments, generator) => {
+         this.gl.activeTexture(this.gl.TEXTURE0);
+         this.gl.bindTexture(this.gl.TEXTURE_2D, textureId);
+         this.gl.uniform1i(shaderSet.samplerTexture0Location, 0);
+-        if (bufferData.vertex == null) {
+-          bufferData.vertex = this.gl.createBuffer();
+-        }
+-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, bufferData.vertex);
+-        this.gl.bufferData(this.gl.ARRAY_BUFFER, vertexArray, this.gl.DYNAMIC_DRAW);
+-        this.gl.enableVertexAttribArray(shaderSet.attributePositionLocation);
+-        this.gl.vertexAttribPointer(shaderSet.attributePositionLocation, 2, this.gl.FLOAT, false, 0, 0);
+-        if (bufferData.uv == null) {
+-          bufferData.uv = this.gl.createBuffer();
+-        }
+-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, bufferData.uv);
+-        this.gl.bufferData(this.gl.ARRAY_BUFFER, uvArray, this.gl.DYNAMIC_DRAW);
+-        this.gl.enableVertexAttribArray(shaderSet.attributeTexCoordLocation);
+-        this.gl.vertexAttribPointer(shaderSet.attributeTexCoordLocation, 2, this.gl.FLOAT, false, 0, 0);
++        this.bindGeometry(bufferData, shaderSet, vertexArray, uvArray, indexArray);
+         const channelNo = clippingContextBufferForMask._layoutChannelNo;
+         const colorChannel = clippingContextBufferForMask.getClippingManager().getChannelFlagAsColor(channelNo);
+         this.gl.uniform4f(shaderSet.uniformChannelFlagLocation, colorChannel.R, colorChannel.G, colorChannel.B, colorChannel.A);
+@@ -3258,20 +3245,7 @@ var __async = (__this, __arguments, generator) => {
+             break;
+         }
+         this.gl.useProgram(shaderSet.shaderProgram);
+-        if (bufferData.vertex == null) {
+-          bufferData.vertex = this.gl.createBuffer();
+-        }
+-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, bufferData.vertex);
+-        this.gl.bufferData(this.gl.ARRAY_BUFFER, vertexArray, this.gl.DYNAMIC_DRAW);
+-        this.gl.enableVertexAttribArray(shaderSet.attributePositionLocation);
+-        this.gl.vertexAttribPointer(shaderSet.attributePositionLocation, 2, this.gl.FLOAT, false, 0, 0);
+-        if (bufferData.uv == null) {
+-          bufferData.uv = this.gl.createBuffer();
+-        }
+-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, bufferData.uv);
+-        this.gl.bufferData(this.gl.ARRAY_BUFFER, uvArray, this.gl.DYNAMIC_DRAW);
+-        this.gl.enableVertexAttribArray(shaderSet.attributeTexCoordLocation);
+-        this.gl.vertexAttribPointer(shaderSet.attributeTexCoordLocation, 2, this.gl.FLOAT, false, 0, 0);
++        this.bindGeometry(bufferData, shaderSet, vertexArray, uvArray, indexArray);
+         if (clippingContextBufferForDraw != null) {
+           this.gl.activeTexture(this.gl.TEXTURE1);
+           const tex = clippingContextBufferForDraw.getClippingManager().getColorBuffer();
+@@ -3288,13 +3262,38 @@ var __async = (__this, __arguments, generator) => {
+         this.gl.uniformMatrix4fv(shaderSet.uniformMatrixLocation, false, matrix4x4.getArray());
+         this.gl.uniform4f(shaderSet.uniformBaseColorLocation, baseColor.R, baseColor.G, baseColor.B, baseColor.A);{ const dr = renderer.getModel().getModel().drawables, di = renderer._curDrawable, mc = dr.multiplyColors, sc = dr.screenColors; if (mc && sc && di != null) { this.gl.uniform4f(shaderSet.uniformMultiplyColorLocation, mc[di * 4], mc[di * 4 + 1], mc[di * 4 + 2], 1); this.gl.uniform4f(shaderSet.uniformScreenColorLocation, sc[di * 4], sc[di * 4 + 1], sc[di * 4 + 2], 1); } else { this.gl.uniform4f(shaderSet.uniformMultiplyColorLocation, 1, 1, 1, 1); this.gl.uniform4f(shaderSet.uniformScreenColorLocation, 0, 0, 0, 1); } }
+       }
+-      if (bufferData.index == null) {
+-        bufferData.index = this.gl.createBuffer();
+-      }
+-      this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, bufferData.index);
+-      this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, indexArray, this.gl.DYNAMIC_DRAW);
+       this.gl.blendFuncSeparate(SRC_COLOR, DST_COLOR, SRC_ALPHA, DST_ALPHA);
+     }
++    // LOCAL PATCH: 프레임마다 한 번에 올린 버퍼(dsUploadGeometry)를 offset으로 가리킨다. 다른 메모리 영역이면 원래처럼 그때그때 올린다.
++    bindGeometry(bufferData, shaderSet, vertexArray, uvArray, indexArray) {
++      const gl = this.gl;
++      const shared = bufferData.dsOk && vertexArray.buffer === bufferData.dsV.buf && uvArray.buffer === bufferData.dsUv.buf && indexArray.buffer === bufferData.dsIx.buf;
++      if (shared) {
++        gl.bindBuffer(gl.ARRAY_BUFFER, bufferData.dsVBuf);
++        gl.enableVertexAttribArray(shaderSet.attributePositionLocation);
++        gl.vertexAttribPointer(shaderSet.attributePositionLocation, 2, gl.FLOAT, false, 0, vertexArray.byteOffset - bufferData.dsV.lo);
++        gl.bindBuffer(gl.ARRAY_BUFFER, bufferData.dsUvBuf);
++        gl.enableVertexAttribArray(shaderSet.attributeTexCoordLocation);
++        gl.vertexAttribPointer(shaderSet.attributeTexCoordLocation, 2, gl.FLOAT, false, 0, uvArray.byteOffset - bufferData.dsUv.lo);
++        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, bufferData.dsIxBuf);
++        bufferData.dsIxOff = indexArray.byteOffset - bufferData.dsIx.lo;
++        return;
++      }
++      if (bufferData.vertex == null) bufferData.vertex = gl.createBuffer();
++      gl.bindBuffer(gl.ARRAY_BUFFER, bufferData.vertex);
++      gl.bufferData(gl.ARRAY_BUFFER, vertexArray, gl.DYNAMIC_DRAW);
++      gl.enableVertexAttribArray(shaderSet.attributePositionLocation);
++      gl.vertexAttribPointer(shaderSet.attributePositionLocation, 2, gl.FLOAT, false, 0, 0);
++      if (bufferData.uv == null) bufferData.uv = gl.createBuffer();
++      gl.bindBuffer(gl.ARRAY_BUFFER, bufferData.uv);
++      gl.bufferData(gl.ARRAY_BUFFER, uvArray, gl.DYNAMIC_DRAW);
++      gl.enableVertexAttribArray(shaderSet.attributeTexCoordLocation);
++      gl.vertexAttribPointer(shaderSet.attributeTexCoordLocation, 2, gl.FLOAT, false, 0, 0);
++      if (bufferData.index == null) bufferData.index = gl.createBuffer();
++      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, bufferData.index);
++      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indexArray, gl.DYNAMIC_DRAW);
++      bufferData.dsIxOff = 0;
++    }
+     releaseShaderProgram() {
+       for (let i = 0; i < this._shaderSets.length; i++) {
+         this.gl.deleteProgram(this._shaderSets[i].shaderProgram);
+@@ -3506,11 +3505,40 @@ var __async = (__this, __arguments, generator) => {
+       this._bufferData.uv = null;
+       (_c = this.gl) == null ? void 0 : _c.deleteBuffer(this._bufferData.index);
+       this._bufferData.index = null;
++      for (const k of ["dsVBuf", "dsUvBuf", "dsIxBuf"]) if (this._bufferData[k]) { this.gl && this.gl.deleteBuffer(this._bufferData[k]); this._bufferData[k] = null; }
+       self2._bufferData = void 0;
+       self2._textures = void 0;
+     }
++    // LOCAL PATCH: Core의 정점·UV·인덱스 배열은 각각 한 메모리 영역에 drawable 순서로 붙어 있다.
++    // 정점은 프레임마다 한 번에, UV·인덱스는 처음 한 번만 올리고, 그릴 때는 offset으로 가리킨다 (drawable마다 bufferData 3번 → 프레임당 1번).
++    dsUploadGeometry() {
++      const gl = this.gl, bd = this._bufferData, d = this.getModel().getModel().drawables;
++      if (bd.dsOk === false || !d.count) return;
++      if (!bd.dsV || bd.dsV.buf !== d.vertexPositions[0].buffer) {
++        const span = (arrs) => {
++          const buf = arrs[0].buffer; let lo = Infinity, hi = 0;
++          for (let i = 0; i < d.count; i++) {
++            const a = arrs[i];
++            if (a.buffer !== buf) return null;
++            lo = Math.min(lo, a.byteOffset); hi = Math.max(hi, a.byteOffset + a.byteLength);
++          }
++          return { buf, lo, bytes: new Uint8Array(buf, lo, hi - lo) };
++        };
++        const v = span(d.vertexPositions), uv = span(d.vertexUvs), ix = span(d.indices);
++        if (!v || !uv || !ix) { bd.dsOk = false; return; }   // 한 영역이 아니면 원래 방식으로
++        bd.dsV = v; bd.dsUv = uv; bd.dsIx = ix;
++        bd.dsVBuf = bd.dsVBuf || gl.createBuffer(); bd.dsUvBuf = bd.dsUvBuf || gl.createBuffer(); bd.dsIxBuf = bd.dsIxBuf || gl.createBuffer();
++        gl.bindBuffer(gl.ARRAY_BUFFER, bd.dsVBuf); gl.bufferData(gl.ARRAY_BUFFER, v.bytes, gl.DYNAMIC_DRAW);
++        gl.bindBuffer(gl.ARRAY_BUFFER, bd.dsUvBuf); gl.bufferData(gl.ARRAY_BUFFER, uv.bytes, gl.STATIC_DRAW);
++        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, bd.dsIxBuf); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, ix.bytes, gl.STATIC_DRAW);
++        bd.dsOk = true;
++        return;
++      }
++      gl.bindBuffer(gl.ARRAY_BUFFER, bd.dsVBuf); gl.bufferSubData(gl.ARRAY_BUFFER, 0, bd.dsV.bytes);
++    }
+     doDrawModel() {
+       this.preDraw();
++      this.dsUploadGeometry();
+       if (this._clippingManager != null) {
+         this._clippingManager.setupClippingContext(this.getModel(), this);
+       }
+@@ -3551,7 +3579,7 @@ var __async = (__this, __arguments, generator) => {
+         drawtexture = this._textures[textureNo];
+       }
+       CubismShader_WebGL.getInstance().setupShaderProgram(this, drawtexture, vertexCount, vertexArray, indexArray, uvArray, this._bufferData, opacity, colorBlendMode, modelColorRGBA, this.isPremultipliedAlpha(), this.getMvpMatrix(), invertedMask);
+-      this.gl.drawElements(this.gl.TRIANGLES, indexCount, this.gl.UNSIGNED_SHORT, 0);
++      this.gl.drawElements(this.gl.TRIANGLES, indexCount, this.gl.UNSIGNED_SHORT, this._bufferData.dsIxOff || 0);
+       this.gl.useProgram(null);
+       this.setClippingContextBufferForDraw(null);
+       this.setClippingContextBufferForMask(null);

@@ -1,0 +1,318 @@
+// !$*UTF8*$!
+{
+  "archiveVersion" = "1";
+  "classes" = {
+};
+  "objectVersion" = "56";
+  "objects" = {
+  B91900000000000000000001 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LipSync.swift; sourceTree = "<group>"; };
+  B91900000000000000000002 = { isa = PBXBuildFile; fileRef = B91900000000000000000001; };
+  B91900000000000000000003 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FishSpeech.swift; sourceTree = "<group>"; };
+  B91900000000000000000004 = { isa = PBXBuildFile; fileRef = B91900000000000000000003; };
+  B91800000000000000000001 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelInstallOperation.swift; sourceTree = "<group>"; };
+  B91800000000000000000002 = { isa = PBXBuildFile; fileRef = B91800000000000000000001; };
+  B91700000000000000000001 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AugustMLXInference.swift; sourceTree = "<group>"; };
+  B91700000000000000000002 = { isa = PBXBuildFile; fileRef = B91700000000000000000001; };
+  B91600000000000000000001 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bonsai9Pack.swift; sourceTree = "<group>"; };
+  B91600000000000000000002 = { isa = PBXBuildFile; fileRef = B91600000000000000000001; };
+  B91600000000000000000003 = { isa = XCLocalSwiftPackageReference; relativePath = Packages/MikuBonsaiMLX; };
+  B91600000000000000000004 = { isa = XCSwiftPackageProductDependency; package = B91600000000000000000003; productName = MikuBonsaiMLX; };
+  B91600000000000000000005 = { isa = PBXBuildFile; productRef = B91600000000000000000004; };
+  B27100000000000000000001 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BonsaiPack.swift; sourceTree = "<group>"; };
+  B27100000000000000000002 = { isa = PBXBuildFile; fileRef = B27100000000000000000001; };
+  B11000000000000000000001 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AugustPack.swift; sourceTree = "<group>"; };
+  B11000000000000000000002 = { isa = PBXBuildFile; fileRef = B11000000000000000000001; };
+  B80000000000000000000001 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalMiku.swift; sourceTree = "<group>"; };
+  B80000000000000000000002 = { isa = PBXBuildFile; fileRef = B80000000000000000000001; };
+  B80000000000000000000003 = { isa = PBXFileReference; lastKnownFileType = file; path = "ModelAssets/Miku-August-8B-Memory-Q4_K_M.gguf"; sourceTree = SOURCE_ROOT; };
+  B80000000000000000000004 = { isa = PBXBuildFile; fileRef = B80000000000000000000003; settings = { ASSET_TAGS = ("miku-august-q4"); }; };
+  B80000000000000000000005 = { isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = "Vendor/llama.xcframework"; sourceTree = SOURCE_ROOT; };
+  B8000000000000000000000A = { isa = PBXBuildFile; fileRef = B80000000000000000000005; };
+  B80000000000000000000006 = { isa = PBXBuildFile; fileRef = B80000000000000000000005; settings = { ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy); }; };
+  B80000000000000000000007 = { isa = PBXCopyFilesBuildPhase; buildActionMask = 2147483647; dstPath = ""; dstSubfolderSpec = 10; files = (B80000000000000000000006); name = "Embed local inference library"; runOnlyForDeploymentPostprocessing = 0; };
+  B80000000000000000000008 = { isa = PBXFileReference; lastKnownFileType = text; path = "Vendor/llama-LICENSE.txt"; sourceTree = SOURCE_ROOT; };
+  B80000000000000000000009 = { isa = PBXBuildFile; fileRef = B80000000000000000000008; };
+
+  "B60000000000000000000001" = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceRoom.swift; sourceTree = "<group>"; };
+  "C60000000000000000000001" = { isa = PBXBuildFile; fileRef = "B60000000000000000000001"; };
+  "B60000000000000000000000" = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandsFreeInput.swift; sourceTree = "<group>"; };
+  "C60000000000000000000000" = { isa = PBXBuildFile; fileRef = "B60000000000000000000000"; };
+  "6D4259BE1A71C5F40F019B90" = {
+  "isa" = "PBXFileReference";
+  "lastKnownFileType" = "sourcecode.swift";
+  "path" = "Account.swift";
+  "sourceTree" = "<group>";
+};
+  "670CC622084DD6C9EA83E090" = {
+  "isa" = "PBXBuildFile";
+  "fileRef" = "6D4259BE1A71C5F40F019B90";
+};
+  "377FC72B5DFFFEFA5A4D51BC" = {
+  "isa" = "PBXFileReference";
+  "lastKnownFileType" = "sourcecode.swift";
+  "path" = "Alerts.swift";
+  "sourceTree" = "<group>";
+};
+  "10FC6E8B99962908F30146E2" = {
+  "isa" = "PBXBuildFile";
+  "fileRef" = "377FC72B5DFFFEFA5A4D51BC";
+};
+  "4411227784337DBB3AE28994" = {
+  "isa" = "PBXFileReference";
+  "lastKnownFileType" = "sourcecode.swift";
+  "path" = "App.swift";
+  "sourceTree" = "<group>";
+};
+  "9E1FBDCF039160110E2ED74F" = {
+  "isa" = "PBXBuildFile";
+  "fileRef" = "4411227784337DBB3AE28994";
+};
+  "49CCAAE1F32216FE15D05F42" = {
+  "isa" = "PBXFileReference";
+  "lastKnownFileType" = "sourcecode.swift";
+  "path" = "Chat.swift";
+  "sourceTree" = "<group>";
+};
+  "E265C13AB3C02B1CF37C5CF8" = {
+  "isa" = "PBXBuildFile";
+  "fileRef" = "49CCAAE1F32216FE15D05F42";
+};
+  "6EAEBFB3A7659F9B7C359ADC" = {
+  "isa" = "PBXFileReference";
+  "lastKnownFileType" = "sourcecode.swift";
+  "path" = "Preferences.swift";
+  "sourceTree" = "<group>";
+};
+  "284A8B1E1A0C95F521C3CEA8" = {
+  "isa" = "PBXBuildFile";
+  "fileRef" = "6EAEBFB3A7659F9B7C359ADC";
+};
+  "1200156F9FDB3A662D94CF69" = {
+  "isa" = "PBXFileReference";
+  "lastKnownFileType" = "sourcecode.swift";
+  "path" = "Services.swift";
+  "sourceTree" = "<group>";
+};
+  "67DED845EB0AA5BBB0AE3A15" = {
+  "isa" = "PBXBuildFile";
+  "fileRef" = "1200156F9FDB3A662D94CF69";
+};
+  "676043B71262517ADC55E5F3" = {
+  "isa" = "PBXFileReference";
+  "lastKnownFileType" = "sourcecode.swift";
+  "path" = "Stage.swift";
+  "sourceTree" = "<group>";
+};
+  "E587694CA7F8FB2EE25A24AF" = {
+  "isa" = "PBXBuildFile";
+  "fileRef" = "676043B71262517ADC55E5F3";
+};
+  "AF5B965B3A2F5D341B3E15DE" = {
+  "isa" = "PBXFileReference";
+  "lastKnownFileType" = "sourcecode.swift";
+  "path" = "Voice.swift";
+  "sourceTree" = "<group>";
+};
+  "B51109F4592B4B5511B762CD" = {
+  "isa" = "PBXBuildFile";
+  "fileRef" = "AF5B965B3A2F5D341B3E15DE";
+};
+  "CA6D0E3AAA7D6CC0E9D9FE14" = {
+  "isa" = "PBXFileReference";
+  "lastKnownFileType" = "folder";
+  "path" = "Stage";
+  "sourceTree" = "<group>";
+};
+  "D813B61DC78E32557F7543FC" = {
+  "isa" = "PBXBuildFile";
+  "fileRef" = "CA6D0E3AAA7D6CC0E9D9FE14";
+};
+  "28AAD1477D5182D66D4B03B3" = {
+  "isa" = "PBXFileReference";
+  "lastKnownFileType" = "folder.assetcatalog";
+  "path" = "Assets.xcassets";
+  "sourceTree" = "<group>";
+};
+  "222F0DBFFE5EB23DCD3FD16F" = {
+  "isa" = "PBXBuildFile";
+  "fileRef" = "28AAD1477D5182D66D4B03B3";
+};
+  "38A007151ABE87CC01A5B6E9" = {
+  "isa" = "PBXFileReference";
+  "explicitFileType" = "wrapper.application";
+  "includeInIndex" = "0";
+  "path" = "HarnessMiku.app";
+  "sourceTree" = "BUILT_PRODUCTS_DIR";
+};
+  "DC76E9F0C0006E8F919E0C51" = {
+  "isa" = "PBXGroup";
+  "children" = ( "7D1043473D55BFA90E8530D3", "FBDC4F23F93125BBEEAE800C" );
+  "sourceTree" = "<group>";
+};
+  "7D1043473D55BFA90E8530D3" = {
+  "isa" = "PBXGroup";
+  "path" = "HarnessMiku";
+  "children" = ( B91900000000000000000003, B91900000000000000000001, B91800000000000000000001, B91700000000000000000001, B91600000000000000000001, B27100000000000000000001, B11000000000000000000001, B80000000000000000000001, B80000000000000000000003, B80000000000000000000005, B80000000000000000000008, "B60000000000000000000000", "6D4259BE1A71C5F40F019B90", "377FC72B5DFFFEFA5A4D51BC", "4411227784337DBB3AE28994", "49CCAAE1F32216FE15D05F42", "6EAEBFB3A7659F9B7C359ADC", "1200156F9FDB3A662D94CF69", "676043B71262517ADC55E5F3", "B60000000000000000000001", "AF5B965B3A2F5D341B3E15DE", "CA6D0E3AAA7D6CC0E9D9FE14", "28AAD1477D5182D66D4B03B3" );
+  "sourceTree" = "<group>";
+};
+  "FBDC4F23F93125BBEEAE800C" = {
+  "isa" = "PBXGroup";
+  "name" = "Products";
+  "children" = ( "38A007151ABE87CC01A5B6E9" );
+  "sourceTree" = "<group>";
+};
+  "BCE16DD0260827ECF338C787" = {
+  "isa" = "PBXSourcesBuildPhase";
+  "buildActionMask" = "2147483647";
+  "files" = ( B91900000000000000000004, B91900000000000000000002, B91800000000000000000002, B91700000000000000000002, B91600000000000000000002, B27100000000000000000002, B11000000000000000000002, B80000000000000000000002, "670CC622084DD6C9EA83E090", "10FC6E8B99962908F30146E2", "9E1FBDCF039160110E2ED74F", "E265C13AB3C02B1CF37C5CF8", "284A8B1E1A0C95F521C3CEA8", "67DED845EB0AA5BBB0AE3A15", "E587694CA7F8FB2EE25A24AF", "C60000000000000000000000", "C60000000000000000000001", "B51109F4592B4B5511B762CD" );
+  "runOnlyForDeploymentPostprocessing" = "0";
+};
+  "0189424A5A60FED329FA868E" = {
+  "isa" = "PBXResourcesBuildPhase";
+  "buildActionMask" = "2147483647";
+  "files" = ( B80000000000000000000004, B80000000000000000000009, "D813B61DC78E32557F7543FC", "222F0DBFFE5EB23DCD3FD16F" );
+  "runOnlyForDeploymentPostprocessing" = "0";
+};
+  "7561BFB015D8F536760CB671" = {
+  "isa" = "PBXFrameworksBuildPhase";
+  "buildActionMask" = "2147483647";
+  "files" = ( B91600000000000000000005, B8000000000000000000000A );
+  "runOnlyForDeploymentPostprocessing" = "0";
+};
+  "D56D985300D4B52EB6E189BE" = {
+  "isa" = "PBXShellScriptBuildPhase";
+  "name" = "Check SDK and private assets";
+  "alwaysOutOfDate" = "1";
+  "buildActionMask" = "2147483647";
+  "files" = (  );
+  "inputPaths" = ( "$(SRCROOT)/Tools/check-sdk.sh", "$(SRCROOT)/HarnessMiku/Stage" );
+  "outputPaths" = (  );
+  "shellPath" = "/bin/sh";
+  "shellScript" = "/bin/sh \"$SRCROOT/Tools/check-sdk.sh\"";
+  "runOnlyForDeploymentPostprocessing" = "0";
+};
+  "89E1FD6268CC0F221A2BE178" = {
+  "isa" = "XCBuildConfiguration";
+  "buildSettings" = {
+  "SDKROOT" = "iphoneos";
+  "IPHONEOS_DEPLOYMENT_TARGET" = "27.0";
+  "SWIFT_VERSION" = "5.0";
+  "SWIFT_OPTIMIZATION_LEVEL" = "-Onone";
+  "CLANG_ENABLE_MODULES" = "YES";
+  "ENABLE_USER_SCRIPT_SANDBOXING" = "YES";
+};
+  "name" = "Debug";
+};
+  "E6DE6C99132752C914FEF632" = {
+  "isa" = "XCBuildConfiguration";
+  "buildSettings" = {
+  "SDKROOT" = "iphoneos";
+  "IPHONEOS_DEPLOYMENT_TARGET" = "27.0";
+  "SWIFT_VERSION" = "5.0";
+  "SWIFT_OPTIMIZATION_LEVEL" = "-O";
+  "CLANG_ENABLE_MODULES" = "YES";
+  "ENABLE_USER_SCRIPT_SANDBOXING" = "YES";
+};
+  "name" = "Release";
+};
+  "49EA05A46B1A86EA7E413B43" = {
+  "isa" = "XCConfigurationList";
+  "buildConfigurations" = ( "89E1FD6268CC0F221A2BE178", "E6DE6C99132752C914FEF632" );
+  "defaultConfigurationName" = "Release";
+  "defaultConfigurationIsVisible" = "0";
+};
+  "7082CC0B6FC1282FCEABD07A" = {
+  "isa" = "XCBuildConfiguration";
+  "buildSettings" = {
+  "ENABLE_ON_DEMAND_RESOURCES" = YES;
+  "LD_RUNPATH_SEARCH_PATHS" = ("$(inherited)", "@executable_path/Frameworks");
+  "PRODUCT_NAME" = "HarnessMiku";
+  "PRODUCT_BUNDLE_IDENTIFIER" = "local.personal.HarnessMiku";
+  "GENERATE_INFOPLIST_FILE" = "YES";
+  "INFOPLIST_KEY_ITSAppUsesNonExemptEncryption" = "NO";
+  "INFOPLIST_KEY_CFBundleDisplayName" = "Harness Miku";
+  "INFOPLIST_KEY_LSApplicationCategoryType" = "public.app-category.entertainment";
+  "INFOPLIST_KEY_UILaunchScreen_Generation" = "YES";
+  "INFOPLIST_KEY_UIApplicationSceneManifest_Generation" = "YES";
+  "INFOPLIST_KEY_UISupportedInterfaceOrientations" = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+  "INFOPLIST_KEY_NSLocalNetworkUsageDescription" = "선택한 개인 Mac의 답변 알림 중계 서버에 연결합니다.";
+  "INFOPLIST_KEY_NSMicrophoneUsageDescription" = "미쿠에게 보낼 말을 녹음해 초안에 담습니다.";
+  "INFOPLIST_KEY_NSSpeechRecognitionUsageDescription" = "한국어로 말한 내용을 메시지로 바꿉니다. 기기 내 인식이 지원되지 않으면 Apple 음성 인식 서비스를 사용합니다.";
+  "SUPPORTED_PLATFORMS" = "iphoneos iphonesimulator";
+  "TARGETED_DEVICE_FAMILY" = "1,2";
+  "SUPPORTS_MACCATALYST" = "NO";
+  "CODE_SIGN_STYLE" = "Automatic";
+  "CODE_SIGN_ENTITLEMENTS" = "HarnessMiku/Push.entitlements";
+  "ASSETCATALOG_COMPILER_APPICON_NAME" = "AppIcon";
+  "MARKETING_VERSION" = "0.1.0";
+  "CURRENT_PROJECT_VERSION" = "23";
+  "ENABLE_PREVIEWS" = "YES";
+};
+  "name" = "Debug";
+};
+  "639A7CA24D39909E713B47F7" = {
+  "isa" = "XCBuildConfiguration";
+  "buildSettings" = {
+  "ENABLE_ON_DEMAND_RESOURCES" = YES;
+  "LD_RUNPATH_SEARCH_PATHS" = ("$(inherited)", "@executable_path/Frameworks");
+  "PRODUCT_NAME" = "HarnessMiku";
+  "PRODUCT_BUNDLE_IDENTIFIER" = "local.personal.HarnessMiku";
+  "GENERATE_INFOPLIST_FILE" = "YES";
+  "INFOPLIST_KEY_ITSAppUsesNonExemptEncryption" = "NO";
+  "INFOPLIST_KEY_CFBundleDisplayName" = "Harness Miku";
+  "INFOPLIST_KEY_LSApplicationCategoryType" = "public.app-category.entertainment";
+  "INFOPLIST_KEY_UILaunchScreen_Generation" = "YES";
+  "INFOPLIST_KEY_UIApplicationSceneManifest_Generation" = "YES";
+  "INFOPLIST_KEY_UISupportedInterfaceOrientations" = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+  "INFOPLIST_KEY_NSLocalNetworkUsageDescription" = "선택한 개인 Mac의 답변 알림 중계 서버에 연결합니다.";
+  "INFOPLIST_KEY_NSMicrophoneUsageDescription" = "미쿠에게 보낼 말을 녹음해 초안에 담습니다.";
+  "INFOPLIST_KEY_NSSpeechRecognitionUsageDescription" = "한국어로 말한 내용을 메시지로 바꿉니다. 기기 내 인식이 지원되지 않으면 Apple 음성 인식 서비스를 사용합니다.";
+  "SUPPORTED_PLATFORMS" = "iphoneos iphonesimulator";
+  "TARGETED_DEVICE_FAMILY" = "1,2";
+  "SUPPORTS_MACCATALYST" = "NO";
+  "CODE_SIGN_STYLE" = "Automatic";
+  "CODE_SIGN_ENTITLEMENTS" = "HarnessMiku/Push.entitlements";
+  "ASSETCATALOG_COMPILER_APPICON_NAME" = "AppIcon";
+  "MARKETING_VERSION" = "0.1.0";
+  "CURRENT_PROJECT_VERSION" = "23";
+  "ENABLE_PREVIEWS" = "YES";
+};
+  "name" = "Release";
+};
+  "F497FD0CF9CA1625C4A860DE" = {
+  "isa" = "XCConfigurationList";
+  "buildConfigurations" = ( "7082CC0B6FC1282FCEABD07A", "639A7CA24D39909E713B47F7" );
+  "defaultConfigurationName" = "Release";
+  "defaultConfigurationIsVisible" = "0";
+};
+  "0E8A3AD980EC179856012B7E" = {
+  "isa" = "PBXNativeTarget";
+  packageProductDependencies = (B91600000000000000000004);
+  "name" = "HarnessMiku";
+  "productName" = "HarnessMiku";
+  "productType" = "com.apple.product-type.application";
+  "productReference" = "38A007151ABE87CC01A5B6E9";
+  "buildConfigurationList" = "F497FD0CF9CA1625C4A860DE";
+  "buildPhases" = ( "D56D985300D4B52EB6E189BE", "BCE16DD0260827ECF338C787", "7561BFB015D8F536760CB671", "0189424A5A60FED329FA868E", B80000000000000000000007 );
+  "buildRules" = (  );
+  "dependencies" = (  );
+};
+  "98F54143AB4E86B28C3AFEE0" = {
+  "isa" = "PBXProject";
+  packageReferences = (B91600000000000000000003);
+  "attributes" = {
+  "BuildIndependentTargetsInParallel" = "YES";
+};
+  "buildConfigurationList" = "49EA05A46B1A86EA7E413B43";
+  "compatibilityVersion" = "Xcode 14.0";
+  "developmentRegion" = "ko";
+  "knownRegions" = ( "ko", "en", "Base" );
+  "mainGroup" = "DC76E9F0C0006E8F919E0C51";
+  "productRefGroup" = "FBDC4F23F93125BBEEAE800C";
+  "projectDirPath" = "";
+  "projectRoot" = "";
+  "targets" = ( "0E8A3AD980EC179856012B7E" );
+};
+};
+  "rootObject" = "98F54143AB4E86B28C3AFEE0";
+}
