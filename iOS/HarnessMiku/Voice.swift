@@ -16,7 +16,8 @@ import Speech
     private var file: URL?
     private var speechTask: SFSpeechRecognitionTask?
     private var recognizer: SFSpeechRecognizer?
-    private var network: Task<Void,Never>?
+    private var synthesis: Task<Void,Never>?
+    private var deviceSpeech: LocalMikuSpeech?
     private var clock: Task<Void,Never>?
     private var observer: NSObjectProtocol?
     override init() {
@@ -31,7 +32,8 @@ import Speech
         token = UUID()
         playbackFinished = nil
         clock?.cancel(); clock = nil
-        network?.cancel(); network = nil
+        synthesis?.cancel(); synthesis = nil
+        deviceSpeech?.stop(); deviceSpeech = nil
         speechTask?.cancel(); speechTask = nil; recognizer = nil
         recorder?.stop(); recorder = nil
         player?.stop(); player = nil
@@ -87,11 +89,37 @@ import Speech
         stop(); problem = nil; mode = .loading
         playbackFinished = handsFreeCompletion
         let ticket = token
-        network = Task {
+        let provider = SpeechProvider.selected
+        synthesis = Task {
             guard ticket == token, !Task.isCancelled else { return }
             do {
-                let speech = try await Service.voice(text,id:id,engine:engine)
-                try await play(speech, text: text, ticket: ticket)
+                switch provider {
+                case .fish:
+                    let speech = try await Service.voice(text,id:id,engine:engine)
+                    try await play(speech, text: text, ticket: ticket)
+                case .localRVC:
+                    guard LocalMikuRVC.isInstalled else { throw MikuError("설정에서 미쿠 RVC 음성 팩을 먼저 가져와 줘.") }
+                    let performance = Performance(text)
+                    let phrases = LocalMikuSpeech.phrases(performance.body)
+                    guard !phrases.isEmpty else { throw MikuError("읽을 대사가 없어.") }
+                    let source = LocalMikuSpeech()
+                    deviceSpeech = source
+                    var speech = try await source.render(phrases[0], tone: performance.tone)
+                    for index in phrases.indices {
+                        try Task.checkCancellation()
+                        guard ticket == token else { return }
+                        if index + 1 < phrases.count {
+                            // Prepare at most one phrase ahead while the current one plays.
+                            async let upcoming = source.render(phrases[index + 1], tone: performance.tone)
+                            try await play(speech, text: phrases[index], ticket: ticket)
+                            if ticket == token { mode = .loading }
+                            speech = try await upcoming
+                        } else {
+                            try await play(speech, text: phrases[index], ticket: ticket)
+                        }
+                    }
+                }
+                if token == ticket { finishPlayback() }
             } catch {
                 guard ticket == token else { return }
                 stop()
@@ -115,7 +143,7 @@ import Speech
             mouth = timeline.pose(at: next.currentTime)
             try await Task.sleep(for: .milliseconds(33))
         }
-        if ticket == token { finishPlayback() }
+        if ticket == token { mouth = .closed }
     }
     private func finishPlayback() {
         let finished = playbackFinished

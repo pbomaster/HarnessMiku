@@ -105,6 +105,8 @@ iOS/HarnessMiku/CharacterSetup.swift
 iOS/HarnessMiku/Chat.swift
 iOS/HarnessMiku/FishSpeech.swift
 iOS/HarnessMiku/HandsFreeInput.swift
+iOS/HarnessMiku/LocalMikuRVC.swift
+iOS/HarnessMiku/LocalMikuSpeech.swift
 iOS/HarnessMiku/LipSync.swift
 iOS/HarnessMiku/Preferences.swift
 iOS/HarnessMiku/Push.entitlements
@@ -128,6 +130,7 @@ iOS/Tools/check-prompts.sh
 iOS/Tools/check-sdk.sh
 iOS/Tools/miku-mark.svg
 iOS/Tools/pr7-gpu.patch
+iOS/Tools/prepare-rvc-pack.py
 iOS/Tools/prepare.py
 iOS/Verify-Simulator.command""".split())
 DENIED = set(json.loads(Path("hashes.json").read_text()).values())

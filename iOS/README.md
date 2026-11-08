@@ -11,6 +11,14 @@ Mac판의 ‘지금 바로 윤회’ 미쿠를 iPhone에서 만나기 위한 Swi
 
 iOS 27.2 SDK를 선택한 Mac에서 저장소 루트의 `bash packaging/build-ios.sh "$PWD/HarnessMiku-iOS.ipa"`를 실행하세요. 기기용 IPA에는 개인 서명 정보가 들어가지 않습니다.
 
+## 아이폰 기기 내 하츠네 미쿠 음성
+
+설정의 **미쿠의 목소리 → 기기 내 미쿠**에서 `HatsuneMiku-RVC-iPhone.zip`을 선택한 뒤 저장하세요. 캐릭터를 그리는 Live2D ZIP과 목소리 ZIP은 별개입니다. 아이폰에 설치된 한국어 시스템 음성과 RVC 모델로 낭독하며 Fish API 키는 필요하지 않습니다. DeepSeek 채팅은 기존 연결 방식을 사용합니다. 기존 Fish Audio 사용자 설정은 유지됩니다.
+
+음성 팩을 준비하려면 Python 3, Node.js, npm이 있는 컴퓨터에서 `python3 iOS/Tools/prepare-rvc-pack.py HatsuneMiku-RVC-iPhone.zip`을 실행하세요. 출력 ZIP을 아이폰 파일 앱에 보관하세요. 이후 낭독은 아이폰에서 수행합니다. 아카이브에는 aple / 3939_dancer의 `miku_default_rvc` 가중치를 변환한 40 kHz ONNX 모델과 ContentVec 특징 추출기가 들어갑니다. 선택적 검색 인덱스는 사용하지 않습니다.
+
+[음성 모델 및 제작자](https://huggingface.co/aple/HatsuneMikuRVC) · [ContentVec 배포처](https://huggingface.co/wok000/weights_gpl)
+
 ## 음성 대화
 
 전체화면에 들어가면 음성 인식을 시작하고, 사이드바의 마이크 아이콘으로 켜고 끌 수 있습니다. 화면을 접거나 펼치는 동안 선택한 마이크 상태를 이어 갑니다. 앱이 백그라운드로 이동하거나 오디오가 중단되면 음성 대화를 멈춥니다. 대화 자막과 실제 오류를 표시합니다.

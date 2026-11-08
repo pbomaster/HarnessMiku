@@ -1,8 +1,14 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct Preferences: View {
     @Environment(\.dismiss) private var dismiss
     @State private var chat = ""
+    @State private var provider = SpeechProvider.fish
+    @AppStorage(SpeechProvider.key) private var savedProvider = SpeechProvider.fish
+    @State private var choosingVoicePack = false
+    @State private var importingVoicePack = false
+    @State private var hasVoicePack = LocalMikuRVC.isInstalled
     @State private var fish = ""
     @State private var id = ""
     @State private var model = ""
@@ -36,19 +42,32 @@ struct Preferences: View {
                     } else {
                         SecureField("DeepSeek API 키",text:$chat).textInputAutocapitalization(.never).autocorrectionDisabled()
                     }
-                } header: { Label("캐릭터 채팅",systemImage:"text.bubble") }
-                  footer: { Text("보내기를 누르면 미쿠의 지시문과 최근 대화 최대 24개를 DeepSeek로 보내. 선택한 계정 또는 API 키의 사용 한도가 적용돼.") }
+                } header: { Label("캐릭터 채팅",systemImage:"text.bubble") } footer: { Text("보내기를 누르면 미쿠의 지시문과 최근 대화 최대 24개를 DeepSeek로 보내. 선택한 계정 또는 API 키의 사용 한도가 적용돼.") }
                 Section {
-                    SecureField("Fish Audio API 키",text:$fish).textInputAutocapitalization(.never).autocorrectionDisabled()
-                    TextField("32자리 참조 음성 ID",text:$id).textInputAutocapitalization(.never).autocorrectionDisabled()
-                    Picker("합성 모델",selection:$model) {
-                        Text("S2.1 Pro Free").tag("s2.1-pro-free")
-                        Text("S2.1 Pro").tag("s2.1-pro")
-                        Text("Drama 3").tag("drama-3")
+                    Picker("낭독 방식", selection: $provider) {
+                        Text("Fish Audio").tag(SpeechProvider.fish)
+                        Text("기기 내 미쿠").tag(SpeechProvider.localRVC)
+                    }.pickerStyle(.segmented)
+                    if provider == .localRVC {
+                        Text("미쿠 RVC · aple / 3939_dancer").font(.subheadline)
+                        if importingVoicePack { ProgressView("음성 팩 확인 중…") }
+                        else if hasVoicePack { Label("음성 팩 준비됨", systemImage: "checkmark.circle") }
+                        else { Button("RVC 음성 팩 ZIP 가져오기") { choosingVoicePack = true } }
+                    } else {
+                        SecureField("Fish Audio API 키",text:$fish).textInputAutocapitalization(.never).autocorrectionDisabled()
+                        TextField("32자리 참조 음성 ID",text:$id).textInputAutocapitalization(.never).autocorrectionDisabled()
+                        Picker("합성 모델",selection:$model) {
+                            Text("S2.1 Pro Free").tag("s2.1-pro-free")
+                            Text("S2.1 Pro").tag("s2.1-pro")
+                            Text("Drama 3").tag("drama-3")
+                        }
                     }
                     Toggle("답변 자동 낭독",isOn:$auto)
-                } header: { Label("미쿠의 목소리",systemImage:"waveform") }
-                  footer: { Text("낭독할 대사는 Fish Audio로 보내. 자동 낭독을 켜면 새 답변과 미쿠의 터치 대사도 읽어 줘. Mac 개인판의 참조 음성 ID가 기본값이야. 두 API 키는 이 기기 키체인에 저장해.") }
+                } header: { Label("미쿠의 목소리",systemImage:"waveform") } footer: {
+                      Text(provider == .localRVC
+                           ? "아이폰의 한국어 음성을 미쿠 목소리로 변환해. 낭독할 대사와 음성은 이 기기에서 처리해."
+                           : "낭독할 대사는 Fish Audio로 보내. 사용 권한이 있는 참조 음성 ID를 입력해 줘.")
+                  }
                 Section("답변 완료 알림") {
                     Toggle("답변이 오면 알림",isOn:Binding(get:{alerts},set:{on in
                         if on { Task {do {try await Alerts.authorize();alerts=true} catch {self.error=error.localizedDescription}} }
@@ -67,20 +86,34 @@ struct Preferences: View {
                     Text("기본은 꺼짐이야. 자동을 고르면 미쿠가 최근 대화를 보고 검색이 필요한지 먼저 판단해. 항상 검색을 고르면 보낼 때마다 검색해. 검색어나 링크는 DeepSeek로 보내. 대화에 연결한 계정을 사용하며, 검색 이용 한도와 요금은 해당 계정에 따라 달라져.").font(.caption)
                 }
                 Section("받아쓰기") {
-                    Text("마이크로 녹음하고 완료를 누르면 초안에 담겨. 기기 내 한국어 인식을 우선하고, 지원하지 않을 때는 Apple 음성 인식을 사용해. 녹음 파일은 인식 후 삭제해. 전체 화면 음성 대화에서는 마이크가 바로 대기하고, 말이 끝나면 인식된 문장을 DeepSeek로 보내. 미쿠의 답변은 Fish Audio로 읽어 줘.")
+                    Text("마이크로 녹음하고 완료를 누르면 초안에 담겨. 기기 내 한국어 인식을 우선하고, 지원하지 않을 때는 Apple 음성 인식을 사용해. 녹음 파일은 인식 후 삭제해. 전체 화면 음성 대화에서는 마이크가 바로 대기하고, 말이 끝나면 인식된 문장을 DeepSeek로 보내. 미쿠의 답변은 선택한 목소리로 읽어 줘.")
                 }
                 if let error { Text(error).foregroundStyle(.red) }
             }.navigationTitle("대화 설정").navigationBarTitleDisplayMode(.inline)
              .toolbar {
                  ToolbarItem(placement:.cancellationAction) { Button("취소"){ dismiss() } }
-                 ToolbarItem(placement:.confirmationAction) { Button("저장"){ save() }.disabled(!loaded) }
+                 ToolbarItem(placement:.confirmationAction) { Button("저장"){ save() }.disabled(!loaded || importingVoicePack) }
+             }
+             .fileImporter(isPresented: $choosingVoicePack, allowedContentTypes: [.zip]) { result in
+                 do {
+                     let url = try result.get()
+                     importingVoicePack = true
+                     error = nil
+                     Task {
+                         defer { importingVoicePack = false }
+                         do {
+                             try await LocalMikuRVC.shared.install(from: url)
+                             hasVoicePack = LocalMikuRVC.isInstalled
+                         } catch { self.error = error.localizedDescription }
+                     }
+                 } catch { if (error as NSError).code != NSUserCancelledError { self.error = error.localizedDescription } }
              }
              .sheet(item:$login.page) { page in SystemBrowser(page:page,cancelled:{login.end()}).interactiveDismissDisabled() }
              .onDisappear { if login.active && login.page == nil { login.end() } }
              .onAppear {
                  login.refresh();remote=savedRemote;origin=savedOrigin
                  if !["account", "api"].contains(route) { route = Service.accountRoute ? "account" : "api" }
-                 id = savedID; model = savedModel; auto = savedAuto
+                 id = savedID; model = savedModel; auto = savedAuto; provider = savedProvider
                  do { chat = try Keys.read(.chat); fish = try Keys.read(.voice); pair = try Keys.read(.relay); loaded = true }
                  catch { self.error = error.localizedDescription }
              }
@@ -88,17 +121,18 @@ struct Preferences: View {
     }
     private func save() {
         let value = id.trimmingCharacters(in:.whitespacesAndNewlines).lowercased()
-        guard (value.isEmpty && !auto) || value.range(of:"^[a-f0-9]{32}$",options:.regularExpression) != nil else {
+        if provider == .localRVC && !hasVoicePack { error = "미쿠 RVC 음성 팩 ZIP을 먼저 가져와 줘."; return }
+        guard provider != .fish || (value.isEmpty && !auto) || value.range(of:"^[a-f0-9]{32}$",options:.regularExpression) != nil else {
             error = "참조 음성 ID는 32자리 16진수야."; return
         }
-        guard !auto || !fish.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else {
+        guard provider != .fish || !auto || !fish.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else {
             error = "자동 낭독에는 Fish Audio API 키가 필요해."; return
         }
         do {
             if remote { _=try Relay.base(origin);guard pair.count>=32 else{throw MikuError("32자 이상의 중계 연결 키를 입력해 줘.")} }
             try Keys.write(pair,to:.relay);savedOrigin=origin;savedRemote=remote
             try Keys.write(chat,to:.chat); try Keys.write(fish.trimmingCharacters(in: .whitespacesAndNewlines),to:.voice)
-            savedID=value; savedModel=model; savedAuto=auto; dismiss()
+            savedProvider=provider; savedID=value; savedModel=model; savedAuto=auto; dismiss()
         } catch { self.error = error.localizedDescription }
     }
 }
