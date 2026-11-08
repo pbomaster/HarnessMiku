@@ -62,13 +62,18 @@ enum CharacterFiles {
 
 struct CharacterSetup<Content: View>: View {
     @ViewBuilder let content: () -> Content
+    // Bump when the Core protection terms presented here change.
+    private static var termsVersion: String { "core-2.1-ko-1" }
+    @AppStorage("cubismCoreAcceptedTerms") private var acceptedTerms = ""
     @State private var ready = CharacterFiles.ready
     @State private var picking = false
     @State private var loading = false
     @State private var message: String?
 
     var body: some View {
-        if ready { content() }
+        if acceptedTerms != Self.termsVersion {
+            CubismCoreTerms { acceptedTerms = Self.termsVersion }
+        } else if ready { content() }
         else {
             VStack(spacing: 20) {
                 Image(systemName: "person.crop.rectangle").font(.largeTitle).accessibilityHidden(true)
@@ -92,6 +97,41 @@ struct CharacterSetup<Content: View>: View {
                     }
                 } catch { if (error as NSError).code != NSUserCancelledError { message = error.localizedDescription } }
             }
+        }
+    }
+}
+
+private struct CubismCoreTerms: View {
+    let accept: () -> Void
+    @State private var declined = false
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                Text("Cubism Core 이용 조건")
+                    .font(.title.bold())
+                    .accessibilityAddTraits(.isHeader)
+                if declined {
+                    Text("캐릭터 렌더러가 꺼져 있어요. 앱을 닫거나 이용 조건을 다시 확인할 수 있어요.")
+                    Button("이용 조건 다시 보기") { declined = false }
+                        .buttonStyle(.bordered)
+                } else {
+                    Text("Harness Miku는 캐릭터를 화면에 그릴 때 Live2D Cubism Core를 사용합니다. Core의 저작권은 Live2D Inc.에 있습니다.")
+                    Text("Core는 이 앱에 포함된 형태로 이용할 수 있습니다. 법령이나 Live2D의 허락이 있는 경우를 제외하고, Core를 별도로 추출·복제·수정·재배포하거나 역설계·디컴파일·분해할 수 없습니다. 저작권 및 라이선스 표시를 유지해야 합니다.")
+                    Text("아래 원문의 Core 보호 조항이 적용됩니다. 동의 여부는 이 기기에 저장됩니다.")
+                    Link("Live2D 공식 이용 조건 읽기",
+                         destination: URL(string: "https://www.live2d.com/eula/live2d-proprietary-software-license-agreement_en.html")!)
+                    Button("동의하고 계속") { accept() }
+                        .buttonStyle(.borderedProminent)
+                        .accessibilityIdentifier("cubism.accept")
+                    Button("동의하지 않음") { declined = true }
+                        .buttonStyle(.bordered)
+                        .accessibilityIdentifier("cubism.decline")
+                }
+            }
+            .frame(maxWidth: 520, alignment: .leading)
+            .padding(24)
+            .frame(maxWidth: .infinity)
         }
     }
 }

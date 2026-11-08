@@ -22,10 +22,10 @@ Windows EXE는 공개 워크플로에서 빌드했으며 GitHub 빌드 출처 �
 ## iOS 첫 실행
 
 1. 제작자에게서 받은 **New1007-RetrynowMiku.zip**을 압축 상태로 iPhone의 파일 앱에 저장하세요.
-2. Harness Miku를 처음 열고 **모델 ZIP 선택**을 누르세요. 앱이 파일을 검증하고 기기에 저장합니다. 다음 실행부터 이 파일을 다시 사용합니다.
+2. Harness Miku를 열고 **Cubism Core 이용 조건**을 확인하세요. 동의한 뒤 **모델 ZIP 선택**을 누르세요. 앱이 파일을 검증하고 기기에 저장합니다. 다음 실행부터 이 파일을 다시 사용합니다.
 3. 설정에서 **DeepSeek 로그인** 또는 **API 키**를 선택하고 대화를 시작하세요. 음성 낭독은 Fish Audio를 설정한 뒤 사용할 수 있습니다.
 
-iOS 소스는 전체 소스 ZIP의 `iOS/` 폴더에 있습니다. 기기용 IPA가 빌드된 경우 같은 릴리즈의 **Assets**에 표시됩니다. [iOS 설정 안내](iOS/README.md)
+iOS 소스는 저장소의 `iOS/` 폴더에 있습니다. [iOS 0.1.2 릴리스](https://github.com/pbomaster/HarnessMiku/releases/tag/ios-v0.1.2)에서 기기용 IPA를 제공합니다. [iOS 설정 안내](iOS/README.md)
 
 ## Windows x64 설치
 
