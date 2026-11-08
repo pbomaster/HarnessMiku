@@ -97,13 +97,13 @@ jobs:
           cat > ../notes <<EOF
           Windows x64는 EXE, Apple Silicon Mac은 DMG를 열고 제작자 원본 ZIP을 선택하세요. ZIP 설치 키트와 소스도 함께 제공합니다.
 
-          iOS 0.1.0 (24)는 처음 실행할 때 파일 앱에서 캐릭터 ZIP을 가져옵니다. 로그인 또는 API 키로 대화하며, 기기 내 언어 모델은 사용하지 않습니다.
+          iOS 0.1.1 (25)는 처음 실행할 때 파일 앱에서 캐릭터 ZIP을 가져옵니다. 로그인 또는 API 키로 대화하며, 기기 내 언어 모델은 사용하지 않습니다.
 
-          [설치 및 첫 실행 안내](https://github.com/$GH_REPO/blob/v0.1.0/README.md)
+          [설치 및 첫 실행 안내](https://github.com/$GH_REPO/blob/v0.1.1/README.md)
           EOF
           if [[ -f HarnessMiku-iOS.ipa ]]; then
             echo 'iOS IPA는 개인 서명 정보가 없는 기기용 빌드입니다.' >> ../notes
           else
             echo '이 릴리즈의 iOS는 소스만 제공됩니다. 빌드 러너에 iOS 27.2 SDK가 없어 IPA를 생성하지 못했습니다.' >> ../notes
           fi
-          gh release create v0.1.0 ./* --target "$GITHUB_SHA" --title 'Harness Miku v0.1.0' --notes-file ../notes
+          gh release create v0.1.1 ./* --target "$GITHUB_SHA" --title 'Harness Miku v0.1.1' --notes-file ../notes

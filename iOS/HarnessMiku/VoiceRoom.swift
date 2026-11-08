@@ -14,6 +14,7 @@ struct VoiceRoom: View {
     @State private var caption = ""
     @State private var touchLine = ""
     @State private var touchEvent = UUID()
+    @State private var spokenTouch: String?
     @State private var roomError: String?
     @State private var sentHere = false
     @State private var firstTurn = true
@@ -21,6 +22,7 @@ struct VoiceRoom: View {
     private var errorText: String? { roomError ?? input.problem ?? voice.problem ?? (sentHere ? chat.problem : nil) }
     private var subtitle: String {
         if let errorText { return errorText }
+        if let spokenTouch { return spokenTouch }
         if !input.partial.isEmpty { return input.partial }
         if chat.waiting || voice.mode == .playing || voice.mode == .loading || input.phase == .finalizing { return caption }
         return touchLine.isEmpty ? caption : touchLine
@@ -42,7 +44,7 @@ struct VoiceRoom: View {
             catch { roomError = error.localizedDescription; pause(); return }
             if !firstTurn { try? await Task.sleep(for: .milliseconds(300)) }
             firstTurn = false
-            guard !Task.isCancelled && turn == id else { return }
+            guard !Task.isCancelled && turn == id && spokenTouch == nil else { return }
             await input.listen { words in
                 guard turn == id, scene != .background, !chat.waiting else { return }
                 caption = words; sentHere = true
@@ -85,10 +87,7 @@ struct VoiceRoom: View {
             ZStack {
                 LinearGradient(colors: [Color(red: 0.83, green: 0.96, blue: 0.92), Color(red: 0.99, green: 0.88, blue: 0.92)],
                                startPoint: .topLeading, endPoint: .bottomTrailing).ignoresSafeArea()
-                Stage(voice: voice, framing: .thighs, onTouch: { line in
-                    touchLine = line
-                    touchEvent = UUID()
-                }, onFallback: {})
+                Stage(voice: voice, framing: .thighs, onTouch: respondToTouch, onFallback: {})
                     .ignoresSafeArea().accessibilityHidden(true)
                 GeometryReader { content in
                     let safe = content.frame(in: .global)
@@ -99,6 +98,7 @@ struct VoiceRoom: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
                         .offset(x: shift)
                 }
+                .allowsHitTesting(false)
             }
             .toolbarVisibility(.hidden, for: .navigationBar)
             .toolbar {
@@ -124,10 +124,26 @@ struct VoiceRoom: View {
         }
     }
 
+    private func respondToTouch(_ line: String) {
+        touchLine = line
+        touchEvent = UUID()
+        guard scene == .active, !chat.waiting, !chat.hasPendingReply,
+              voice.mode == .idle, input.phase != .finalizing, input.partial.isEmpty else { return }
+        let listeningTurn = turn
+        input.stop()
+        roomError = nil
+        spokenTouch = line
+        voice.speak(line, id: voiceID, engine: engine) {
+            spokenTouch = nil
+            if let listeningTurn, turn == listeningTurn, scene == .active { turn = UUID() }
+        }
+    }
+
     private func toggleMicrophone() {
         if turn != nil {
             pause()
         } else if !chat.waiting && !chat.hasPendingReply {
+            if spokenTouch != nil { voice.stop(); spokenTouch = nil }
             roomError = nil
             sentHere = false
             voice.problem = nil
@@ -137,6 +153,7 @@ struct VoiceRoom: View {
 
     private func pause() {
         turn = nil
+        spokenTouch = nil
         input.stop()
         voice.stop()
     }

@@ -1,6 +1,6 @@
 Unicode true
 SetCompressor /SOLID lzma
-Name "Harness Miku v0.1.0 (Windows x64)"
+Name "Harness Miku v0.1.1 (Windows x64)"
 OutFile "HarnessMiku-Windows-x64-Setup.exe"
 RequestExecutionLevel user
 ShowInstDetails show

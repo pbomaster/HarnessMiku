@@ -13,8 +13,8 @@ cat >"$contents/Info.plist" <<'PLIST'
 <key>CFBundleExecutable</key><string>HarnessMikuInstaller</string>
 <key>CFBundleName</key><string>Harness Miku Installer</string>
 <key>CFBundlePackageType</key><string>APPL</string>
-<key>CFBundleShortVersionString</key><string>0.1.0</string>
-<key>CFBundleVersion</key><string>24</string>
+<key>CFBundleShortVersionString</key><string>0.1.1</string>
+<key>CFBundleVersion</key><string>25</string>
 <key>LSMinimumSystemVersion</key><string>13.0</string>
 </dict></plist>
 PLIST

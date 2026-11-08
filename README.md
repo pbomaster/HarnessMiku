@@ -5,7 +5,7 @@
 
 **제작 · pbomaster, ChatGPT(OpenAI)**
 
-DeepSeek Harness의 채팅과 작업공간에 Live2D 캐릭터를 더하는 비공식 팬 프로젝트입니다. v0.1.0 설치 키트는 기존 Harness의 모델 선택기를 사용하므로 같은 대화 UI에서 로컬 llama.cpp 모델이나 사용자가 등록한 클라우드 모델을 선택할 수 있습니다.
+DeepSeek Harness의 채팅과 작업공간에 Live2D 캐릭터를 더하는 비공식 팬 프로젝트입니다. v0.1.1 설치 키트는 기존 Harness의 모델 선택기를 사용하므로 같은 대화 UI에서 로컬 llama.cpp 모델이나 사용자가 등록한 클라우드 모델을 선택할 수 있습니다.
 
 ![Harness Miku 시작 화면. 중앙의 채팅 입력창과 오른쪽 아래의 미쿠](docs/preview.webp)
 
@@ -13,9 +13,9 @@ DeepSeek Harness의 채팅과 작업공간에 Live2D 캐릭터를 더하는 비�
 
 | Windows x64 | macOS Apple Silicon | 소스 및 검증 |
 | --- | --- | --- |
-| [원클릭 EXE](https://github.com/pbomaster/HarnessMiku/releases/download/v0.1.0/HarnessMiku-Windows-x64-Setup.exe) · [설치 키트 ZIP](https://github.com/pbomaster/HarnessMiku/releases/download/v0.1.0/HarnessMiku-Windows-x64.zip) | [더블클릭 DMG](https://github.com/pbomaster/HarnessMiku/releases/download/v0.1.0/HarnessMiku-Mac.dmg) · [Mac 설치 키트 ZIP](https://github.com/pbomaster/HarnessMiku/releases/download/v0.1.0/HarnessMiku-Mac.zip) | [빌드 소스 ZIP](https://github.com/pbomaster/HarnessMiku/releases/download/v0.1.0/HarnessMiku-source.zip) · [SHA256SUMS.txt](https://github.com/pbomaster/HarnessMiku/releases/download/v0.1.0/SHA256SUMS.txt) |
+| [원클릭 EXE](https://github.com/pbomaster/HarnessMiku/releases/download/v0.1.1/HarnessMiku-Windows-x64-Setup.exe) · [설치 키트 ZIP](https://github.com/pbomaster/HarnessMiku/releases/download/v0.1.1/HarnessMiku-Windows-x64.zip) | [더블클릭 DMG](https://github.com/pbomaster/HarnessMiku/releases/download/v0.1.1/HarnessMiku-Mac.dmg) · [Mac 설치 키트 ZIP](https://github.com/pbomaster/HarnessMiku/releases/download/v0.1.1/HarnessMiku-Mac.zip) | [빌드 소스 ZIP](https://github.com/pbomaster/HarnessMiku/releases/download/v0.1.1/HarnessMiku-source.zip) · [SHA256SUMS.txt](https://github.com/pbomaster/HarnessMiku/releases/download/v0.1.1/SHA256SUMS.txt) |
 
-[v0.1.0 릴리즈 및 설치 안내](https://github.com/pbomaster/HarnessMiku/releases/tag/v0.1.0) · [Windows 공개 빌드 기록](https://github.com/pbomaster/HarnessMiku/actions/workflows/release.yml)
+[v0.1.1 릴리즈 및 설치 안내](https://github.com/pbomaster/HarnessMiku/releases/tag/v0.1.1) · [Windows 공개 빌드 기록](https://github.com/pbomaster/HarnessMiku/actions/workflows/release.yml)
 
 Windows EXE는 공개 워크플로에서 빌드했으며 GitHub 빌드 출처 증명이 있습니다. Windows 게시자 서명(Authenticode)은 없습니다. 내려받은 파일은 PowerShell에서 `Get-FileHash .\HarnessMiku-Windows-x64-Setup.exe -Algorithm SHA256`, Mac에서는 `shasum -a 256 HarnessMiku-Mac.zip`으로 확인하고 위 목록과 비교하세요. GitHub CLI가 있으면 `gh attestation verify HarnessMiku-Windows-x64-Setup.exe -R pbomaster/HarnessMiku`로 EXE의 출처도 검증할 수 있습니다.
 
@@ -29,7 +29,7 @@ iOS 소스는 전체 소스 ZIP의 `iOS/` 폴더에 있습니다. 기기용 IPA�
 
 ## Windows x64 설치
 
-1. [Windows 원클릭 설치기](https://github.com/pbomaster/HarnessMiku/releases/download/v0.1.0/HarnessMiku-Windows-x64-Setup.exe)를 다운로드하세요. 설치기가 공식 하네스에 포함된 Python을 사용합니다. Python과 Git을 별도로 설치할 필요가 없습니다.
+1. [Windows 원클릭 설치기](https://github.com/pbomaster/HarnessMiku/releases/download/v0.1.1/HarnessMiku-Windows-x64-Setup.exe)를 다운로드하세요. 설치기가 공식 하네스에 포함된 Python을 사용합니다. Python과 Git을 별도로 설치할 필요가 없습니다.
 2. 제작자의 [Ko-fi](https://ko-fi.com/s/7bb9ac0243)에서 받은 모델 ZIP을 EXE 옆에 두고 EXE를 실행하세요. ZIP이 다른 위치에 있으면 파일 선택 창이 열립니다. 기본 위치에 공식 하네스가 없으면 고정 버전 설치기를 다운로드해 해시 확인 후 설치합니다. 다른 경로의 기존 하네스를 쓰려면 ZIP 키트의 `Install-Windows.cmd "원본 폴더"`를 실행하세요.
 3. 설치가 끝나면 앱이 열리며 시작 메뉴의 Harness Miku로 다시 실행할 수 있습니다. 설치 경로는 `%LOCALAPPDATA%\Programs\Harness Miku\DeepSeek Harness.exe`입니다. 원본 프로그램과 번갈아 실행하세요. 기존 데이터와 계정을 사용할 수 있습니다.
 4. 한국어·영어 받아쓰기는 키트에서 `Install-Windows.cmd --speech`를 한 번 실행해 추가합니다. Fish 낭독을 사용하려면 입력 옵션을 펼치고 **Fish API 키**에서 키를 입력하세요. 저장에는 Electron의 Windows 사용자 계정 암호화를 사용합니다.
