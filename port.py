@@ -11,6 +11,7 @@ import sys
 import zipfile
 from codex_patch import controller as codex_controller, metadata as codex_metadata
 from features import adapt_bubble, adapt_prompt, adapt_ui, PROMPT
+from performance import apply_performance
 
 FRONT = Path("dsh/node_modules/@deepseek-ai/dsh-web-frontend/dist/assets/dsc")
 PREFIX = "RetrynowMiku/VTS Model File/"
@@ -26,6 +27,28 @@ def adapt_desktop(src,kit):
         nonlocal src
         if src.count(old)!=1: raise ValueError("Desktop window patch mismatch: "+old)
         src=src.replace(old,new)
+    for suffix in ('"desktop")', '"desktop", "lock")'):
+        patch('join(dshHome, "profiles", '+suffix,
+              'join(dshHome, "profiles", '+suffix.replace('"desktop"', '"harness-miku"'))
+    patch("if (claimDesktopSingleInstance(app,", """// Keep Chromium's cache and single-instance lock separate from the base app.
+const mikuUserData = join(app.getPath("appData"), "Harness Miku", "Desktop");
+mkdirSync(mikuUserData, {recursive:true, mode:0o700});
+if (process.platform === "win32" && !existsSync(join(mikuUserData,"Local State"))) {
+    // Preserve DPAPI's existing wrapped key without importing plugins, cache or cookies.
+    const oldState = join(app.getPath("userData"),"Local State");
+    if (existsSync(oldState)) {
+        let wrapped;
+        try { wrapped = JSON.parse(readFileSync(oldState,"utf8").trimStart()).os_crypt?.encrypted_key; }
+        catch { /* A damaged legacy profile must not prevent a clean start. */ }
+        if (typeof wrapped === "string") {
+            try { writeFileSync(join(mikuUserData,"Local State"),JSON.stringify({os_crypt:{encrypted_key:wrapped}}),{flag:"wx",mode:0o600}); }
+            catch(e) { if(e.code !== "EEXIST") throw e; }
+        }
+    }
+}
+app.setPath("userData",mikuUserData);
+app.setPath("sessionData",mikuUserData);
+if (claimDesktopSingleInstance(app,""")
     patch("async save(apiKey) {","async mikuCodex(action,owner){return invoke({namespace:\"settings\",method:\"mikuCodex\",args:{action,owner}});},\n        async balanceRef(){return (await settingsAndReference()).ref;},\n        async save(apiKey) {")
     patch("width: 1280,","transparent: primary, acceptFirstMouse:true, width: 1280,")
     patch('const applyBackdrop = () => {','const applyBackdrop = () => { if(window.isAlwaysOnTop()){window.setVibrancy(null);window.setBackgroundColor("#00000000");return;}')
@@ -43,32 +66,21 @@ def prepare(overlay, archive):
     folder = dest / "miku"
     folder.mkdir()
     with zipfile.ZipFile(archive) as z:
-        def get(name):
-            info = z.getinfo(PREFIX+name)
+        # Only copy files identified in the creator's pinned model release.
+        expected = json.loads(Path(__file__).with_name("hashes.json").read_text())
+        names = [i.filename for i in z.infolist() if i.filename.startswith(PREFIX) and not i.is_dir()]
+        if len(names) != len(expected) or set(names) != {PREFIX+n for n in expected}:
+            raise ValueError("다른 파일이 섞이지 않은 New1007-RetrynowMiku.zip 원본을 선택하세요.")
+        for name, digest in expected.items():
+            info = z.getinfo(PREFIX + name)
             if info.file_size > 16*1024**2:
                 raise ValueError("Unexpected model size")
-            return z.read(info)
-        doc = json.loads(get("RetrynowMiku.model3.json"))
-        refs = doc["FileReferences"]
-        # Read only the known model paths from the uploaded release.
-        textures = [f"RetrynowMiku.4096/texture_{i:02}.png" for i in range(17)]
-        if refs["Textures"] != textures or refs["Moc"] != "RetrynowMiku.moc3":
-            raise ValueError("New1007-RetrynowMiku.zip 원본을 선택해 주세요.")
-        paths = ["RetrynowMiku.moc3","RetrynowMiku.physics3.json","RetrynowMiku.cdi3.json",*textures]
-        expected = json.loads(Path(__file__).with_name("hashes.json").read_text())
-        for name in [*paths,*(name+".exp3.json" for name in EXP.values())]:
-            if hashlib.sha256(get(name)).hexdigest()!=expected[name]:
-                raise ValueError("지원하는 원본 모델 버전을 선택해 주세요.")
-        # Preserve the creator's complete model directory, names and metadata.
-        for info in z.infolist():
-            if not info.filename.startswith(PREFIX) or info.is_dir():
-                continue
-            name=info.filename[len(PREFIX):]
-            if not name or any(part in ("",".","..") for part in name.split("/")):
-                raise ValueError("모델 경로가 올바르지 않습니다.")
-            path=folder/name
-            path.parent.mkdir(exist_ok=True,parents=True)
-            path.write_bytes(get(name))
+            data = z.read(info)
+            if hashlib.sha256(data).hexdigest() != digest:
+                raise ValueError("미쿠 원본과 일치하지 않는 파일: " + name)
+            path = folder / name
+            path.parent.mkdir(exist_ok=True, parents=True)
+            path.write_bytes(data)
     js = dest/"dsc.js"
     s = js.read_text()
     def change(a,b):
@@ -235,7 +247,13 @@ def prepare(overlay, archive):
     change("if (waitingKind || now - lastToolSay < 1500) return;", "if (!running || waitingKind || shownToolLines.has(text) || now - lastToolSay < 1500) return;")
     change("lastToolSay = now; say(text, 0);", "shownToolLines.add(text); lastToolSay = now; say(text, 2400, false, false);")
     change("bubble.textContent = text; bubble.classList.add", 'if (speak) document.dispatchEvent(new CustomEvent("miku-spoken-line",{detail:text})); bubble.textContent = text; bubble.classList.add')
-    js.write_text(adapt_bubble(s))
+    js.write_text(adapt_bubble(s).replace("DeepSeek짱", "Harness Miku"))
+    apply_performance(dest)
+    index = dest.parent.parent / "index.html"
+    for file in (css, index):
+        text = file.read_text()
+        text = re.sub(r"/\*[^*]*DeepSeek짱[^*]*\*/|<!--[^>]*DeepSeek짱[^>]*-->", "", text)
+        file.write_text(text)
 
 
 def entry(header, name, create=False):
@@ -297,7 +315,10 @@ def patch_asar(path, overlay):
         settings_module = PROMPT.parents[2] / "dsh-api-settings-controller/lib"
         patch_module(settings_module/"index.js", codex_controller)
         patch_module(settings_module/"typert.host.js", codex_metadata)
-        patch_module(PROMPT, adapt_prompt)
+        from lite import adapt_lite_prompt, adapt_lite_tools, adapt_conversation
+        patch_module(PROMPT.parents[2]/"dsh-agent-loop/lib/index.js", adapt_conversation)
+        patch_module(PROMPT, lambda script: adapt_lite_prompt(adapt_prompt(script)))
+        patch_module(PROMPT.parents[2]/"dsh-tools/lib/index.js", adapt_lite_tools)
         patch_module(PROMPT.parents[2] / "dsh-tool-bash/lib/index.js", adapt_mac_bash)
         tail=path.stat().st_size-start
         additions=sorted(p for p in overlay.rglob("*") if p.is_file())

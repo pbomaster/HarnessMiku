@@ -4,6 +4,7 @@
     voiceId.setAttribute("aria-label","Fish Audio 음성 ID");
     voiceId.title="사용 권한이 있는 참조 음성 모델의 Fish Audio ID";
     voiceId.value=localStorage.getItem("miku.tts-id")||"";
+    voiceId.placeholder="참조 음성 ID · 32자리";
     voiceId.hidden=true;
     const pick=document.createElement("button");pick.type="button";pick.textContent="음성 ID";
     voiceId.id="miku-voice-id";pick.setAttribute("aria-controls",voiceId.id);pick.setAttribute("aria-expanded","false");
@@ -26,7 +27,25 @@
       status.textContent=engine.selectedOptions[0].text+" 선택";
     };
     preview.onclick=e=>{if(e.isTrusted)readLine(sample);};
-    bar.append(tts,pick,voiceId,label,preview);
+    const keyButton=document.createElement("button");
+    keyButton.type="button";keyButton.textContent="Fish API 키";
+    keyButton.onclick=async event=>{
+      if(!event.isTrusted || tts.disabled)return;
+      keyButton.disabled=true;tts.disabled=true;
+      try{
+        if(await electron.ipcRenderer.invoke("miku:tts-enable",true)){
+          status.textContent="Fish API 키를 저장했어.";
+          if(!validVoiceId())showVoiceId();
+        }
+      }catch(err){status.textContent=err.message;}
+      finally{keyButton.disabled=false;tts.disabled=false;}
+    };
+    function validVoiceId(){return /^[0-9a-f]{32}$/i.test(voiceId.value.trim());}
+    function showVoiceId(){
+      voiceId.hidden=false;pick.setAttribute("aria-expanded","true");voiceId.focus();
+      status.textContent="사용할 Fish 참조 음성의 32자리 ID를 입력한 뒤 목소리를 켜 줘.";
+    }
+    bar.append(tts,keyButton,pick,voiceId,label,preview);
     let enabled=false, generation=0, ctx, playing;
     let lipFrame=0;
     function lipEvent(state){
@@ -74,7 +93,7 @@
       const ticket=++generation;
       stopPlayback();lipEvent({text});
       try{
-        const bytes=await electron.ipcRenderer.invoke("miku:tts",text,voiceId.value.trim(),engine.value,tone);
+        const bytes=await electron.ipcRenderer.invoke("miku:tts",text,voiceId.value.trim().toLowerCase(),engine.value,tone);
         if(ticket!==generation)return;
         const audio=await ctx.decodeAudioData(new Uint8Array(bytes).buffer);
         if(ticket!==generation)return;
@@ -93,14 +112,16 @@
     tts.onclick=async e=>{
       if(!e.isTrusted)return;
       if(enabled){enabled=false;preview.disabled=true;halt();tts.textContent="미쿠 목소리 켜기";return;}
-      if(!/^[0-9a-f]{32}$/.test(voiceId.value.trim())){status.textContent="32자리 음성 ID를 확인해 줘.";return;}
-      if(!confirm("말풍선 대사와 요약을 Fish Audio로 보내 한국어 음성을 합성할까요?"))return;
-      tts.disabled=true;
+      tts.disabled=true;keyButton.disabled=true;
       try{
+        if(!await electron.ipcRenderer.invoke("miku:tts-enable"))return;
+        if(!validVoiceId()){showVoiceId();return;}
+        if(!confirm("말풍선 대사와 요약을 Fish Audio로 보내 한국어 음성을 합성할까요?"))return;
         ctx??=new AudioContext();await ctx.resume();
-        enabled=await electron.ipcRenderer.invoke("miku:tts-enable");
-        if(enabled){preview.disabled=false;localStorage.setItem("miku.tts-id",voiceId.value.trim());tts.textContent="미쿠 목소리 끄기";readLine(sample);}
-      }catch(err){status.textContent=err.message;}finally{tts.disabled=false;}
+        enabled=true;preview.disabled=false;
+        localStorage.setItem("miku.tts-id",voiceId.value.trim().toLowerCase());
+        tts.textContent="미쿠 목소리 끄기";status.textContent="미쿠 목소리를 켰어.";readLine(sample);
+      }catch(err){status.textContent=err.message;}finally{tts.disabled=false;keyButton.disabled=false;}
     };
     document.addEventListener("miku-spoken-line",ev=>{if(typeof ev.detail==="string")readLine(ev.detail);});
     document.addEventListener("miku-spoken-recap",ev=>{

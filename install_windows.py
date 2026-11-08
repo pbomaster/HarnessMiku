@@ -1,5 +1,6 @@
 """Build a user-local x64 copy of the pinned Windows release."""
 import hashlib
+import json
 import os
 from pathlib import Path
 import shutil
@@ -8,6 +9,7 @@ import sys
 import tarfile
 import tempfile
 import urllib.request
+import uuid
 
 import port
 
@@ -49,10 +51,18 @@ def speech_setup():
         assembled.rename(target)
 
 
+def copy_official_files(source, app):
+    manifest = json.loads(Path(__file__).with_name("windows-runtime.json").read_text(encoding="utf-8"))
+    for name, checksum in manifest.items():
+        dest = app / name
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source / name, dest)
+        if digest(dest) != checksum:
+            raise ValueError("공식 Windows 하네스 파일과 일치하지 않습니다: " + name)
+
+
 def install(source, model):
     target = Path(os.environ["LOCALAPPDATA"]) / "Programs/Harness Miku"
-    if target.exists():
-        raise FileExistsError("기존 Harness Miku 폴더를 닫고 다른 이름으로 옮긴 뒤 실행하세요.")
     for rel, expected in [
         ("DeepSeek Harness.exe", "7ae939b5a82b220fbd8ad04dfbafaaedb5a49ab43dc884a5db6381f678dd0cc4"),
         ("resources/app.asar", "e1b6f25fa937da98086c3e77af77aa14791105963c4d337a1c42179d232c6915"),
@@ -65,10 +75,13 @@ def install(source, model):
         repo = stage/"upstream"
         archive = stage/"overlay.zip"
         urllib.request.urlretrieve("https://codeload.github.com/noire113-dev/deepseek-harness-kr/zip/"+COMMIT, archive)
-        if digest(archive) != "e050dec33e0d7ef81e8efa3fcc349822742a60786740cfa18e69255a59eb85b2":
+        if digest(archive) not in {"e050dec33e0d7ef81e8efa3fcc349822742a60786740cfa18e69255a59eb85b2",
+                                   "10957565f608a2db6af6902b255b1b10c327ceedc31fbb6a2c6930c92c39ce7e"}:
             raise ValueError("한국어 패치 ZIP의 해시가 일치하지 않습니다.")
         with zipfile.ZipFile(archive) as z:
-            prefix = "deepseek-harness-kr-"+COMMIT+"/"
+            prefix = z.namelist()[0]
+            if not prefix.endswith("-"+COMMIT+"/"):
+                raise ValueError("Unexpected overlay archive root")
             for info in z.infolist():
                 rel = info.filename.removeprefix(prefix)
                 if info.is_dir() or not (rel.startswith("harness/overlay/") or rel in {"LICENSE","NOTICE.md","harness/tools/app-update.yml"}):
@@ -78,14 +91,27 @@ def install(source, model):
                 with z.open(info) as src, path.open("wb") as dst:
                     shutil.copyfileobj(src,dst)
         app = stage/"app"
-        shutil.copytree(source, app, ignore=shutil.ignore_patterns("Uninstall*.exe","app.asar.orig*","app.asar.bak*","debug.log"))
+        copy_official_files(source, app)
         port.build(app, repo/"harness/overlay", model)
         shutil.copyfile(repo/"harness/tools/app-update.yml",app/"resources/app-update.yml")
         notices = app/"resources/HarnessMikuNotices"
         notices.mkdir(exist_ok=True)
         for filename in ["LICENSE","NOTICE.md"]:
             shutil.copy(repo/filename, notices)
-        app.rename(target)
+        backup = None
+        if target.exists():
+            if target.is_symlink() or target.is_junction() or not (target/"DeepSeek Harness.exe").is_file():
+                raise ValueError("기존 설치 폴더의 형식을 확인하세요.")
+            backup = target.with_name("Harness Miku-backup-" + uuid.uuid4().hex[:12])
+            target.rename(backup)
+        try:
+            app.rename(target)
+        except OSError:
+            if backup and not target.exists():
+                backup.rename(target)
+            raise
+        if backup:
+            print("이전 설치 백업:", backup)
     print("설치 완료:", target/"DeepSeek Harness.exe")
 
 

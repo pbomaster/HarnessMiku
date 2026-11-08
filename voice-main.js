@@ -120,3 +120,18 @@ ipcMain.handle("miku:codex",async(event,action)=>{
   if(!["start","status","cancel"].includes(action)||!welcomeBackend)throw Error("계정 서비스를 사용할 수 없어.");
   return welcomeBackend.mikuCodex(action,mikuCodexOwner);
 });
+
+ipcMain.handle("miku:lite-mode",async(event,value)=>{
+  mikuTrusted(event);
+  const file=join(mikuSupportDir,"lite-mode.txt");
+  if(value===undefined){
+    try{return (await readFile(file,"utf8")).trim()==="on";}
+    catch(e){if(e.code==="ENOENT")return false;throw e;}
+  }
+  if(typeof value!=="boolean")throw Error("잘못된 Lite 모드 값");
+  await mkdir(mikuSupportDir,{recursive:true});
+  const tmp=file+"."+randomUUID();
+  try{await writeFile(tmp,value?"on":"off",{mode:0o600,flag:"wx"});await rename(tmp,file);}
+  finally{await rm(tmp,{force:true});}
+  return value;
+});

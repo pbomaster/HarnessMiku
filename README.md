@@ -1,5 +1,8 @@
 # Harness Miku · macOS Apple Silicon / Windows x64
 
+현재 소스에서 macOS는 `Install.command`, Windows는 `Install-Windows.cmd`로 설치합니다. 데스크톱 입력 옵션에서 라이트 모드를 켤 수 있습니다. 기존 Mac 설치는 앱을 종료한 뒤 `Update.command`로 업데이트할 수 있습니다.
+
+
 **제작 · pbomaster, ChatGPT(OpenAI)**
 
 DeepSeek Harness의 채팅과 작업공간에 Live2D 캐릭터를 더하는 비공식 팬 프로젝트입니다. v0.0.3 설치 키트는 기존 Harness의 모델 선택기를 사용하므로 같은 대화 UI에서 로컬 llama.cpp 모델이나 사용자가 등록한 클라우드 모델을 선택할 수 있습니다.

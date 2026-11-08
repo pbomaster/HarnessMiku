@@ -20,7 +20,7 @@ function mikuAnchor(){
 }
 ipcMain.on("miku:pet-size",(event,value,frame)=>{
   mikuTrusted(event);
-  if(mikuPet && [50,75,100,125,150].includes(value) && ["full","bust"].includes(frame) && (value!==mikuPetSize || frame!==mikuPetFrame)){
+  if(mikuPet && Number.isInteger(value) && value>=50 && value<=150 && ["full","bust"].includes(frame) && (value!==mikuPetSize || frame!==mikuPetFrame)){
     mikuPetSize=value;mikuPetFrame=frame;
     mikuAnchor();
   }

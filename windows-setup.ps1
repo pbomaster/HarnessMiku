@@ -1,7 +1,18 @@
 param([string]$Source, [string]$Model, [switch]$Speech)
 $ErrorActionPreference = "Stop"
+$ProgressPreference = "SilentlyContinue"
+$logging = $false
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 try {
+    try {
+        $logDir = Join-Path $env:LOCALAPPDATA 'Harness Miku\InstallLogs'
+        [void][IO.Directory]::CreateDirectory($logDir)
+        $logFile = Join-Path $logDir ("setup-" + (Get-Date -Format yyyyMMdd-HHmmss) + "-" + $PID + ".log")
+        Start-Transcript -LiteralPath $logFile | Out-Null
+        $logging = $true
+    } catch {
+        Write-Host "Could not start the installation log. Continuing in the console."
+    }
     if ($Source -eq "--speech") { $Speech = $true; $Source = "" }
     $installed = Join-Path $env:LOCALAPPDATA 'Programs\DeepSeek Harness'
     $destination = Join-Path $env:LOCALAPPDATA 'Programs\Harness Miku'
@@ -9,7 +20,9 @@ try {
         $Source = $installed
         if ($Speech -and (Test-Path $destination)) { $Source = $destination }
     }
-    if (!$Speech -and (Test-Path $destination)) { throw "Exit Harness Miku and rename the existing Harness Miku installation folder before reinstalling." }
+    if (!$Speech -and (Get-Process -Name 'DeepSeek Harness' -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq (Join-Path $destination 'DeepSeek Harness.exe') })) {
+        throw "Exit Harness Miku, including its desktop pet, then run setup again."
+    }
     if (!(Test-Path (Join-Path $Source 'DeepSeek Harness.exe'))) {
         if ($Source -ne $installed) { throw "Could not find DeepSeek Harness in the selected folder." }
         Write-Host 'Downloading the official DeepSeek Harness installer...'
@@ -27,10 +40,21 @@ try {
     $python = Join-Path $Source 'resources\runtime\primary-runtime\dependencies\python\python.exe'
     if (!(Test-Path $python) -or (Get-FileHash $python).Hash -ne '44c9b2d0019ad16e09acf9cb8f8fd96bf02c0e4e81de540087a02b3a3160b502') { throw 'The official Windows x64 0.2.1-rc.5 runtime is required.' }
     $script = Join-Path $PSScriptRoot 'install_windows.py'
-    if ($Speech) { & $python -E -s -X utf8 $script --speech }
+    if (!(Test-Path -LiteralPath $script -PathType Leaf)) { throw 'Extract the entire ZIP into one folder, then run Install-Windows.cmd there.' }
+    if ($Speech) { & $python -B -E -s -X utf8 $script --speech }
     else {
         if (!$Model) { $Model = Join-Path $PSScriptRoot 'New1007-RetrynowMiku.zip' }
-        & $python -E -s -X utf8 $script $Source $Model
+        if (!(Test-Path -LiteralPath $Model -PathType Leaf)) {
+            Add-Type -AssemblyName System.Windows.Forms
+            $picker = New-Object System.Windows.Forms.OpenFileDialog
+            try {
+                $picker.Title = 'Select New1007-RetrynowMiku.zip'
+                $picker.Filter = 'ZIP (*.zip)|*.zip'
+                if ($picker.ShowDialog() -ne 'OK') { exit 0 }
+                $Model = $picker.FileName
+            } finally { $picker.Dispose() }
+        }
+        & $python -B -E -s -X utf8 $script $Source $Model
     }
     if ($LASTEXITCODE -ne 0) { throw 'Harness Miku installation did not complete.' }
     if (!$Speech) {
@@ -45,5 +69,8 @@ try {
     exit 0
 } catch {
     Write-Host $_.Exception.Message -ForegroundColor Red
+    if ($logging) { Write-Host "Installation log: $logFile" }
     exit 1
+} finally {
+    if ($logging) { Stop-Transcript | Out-Null }
 }

@@ -6,14 +6,90 @@ import sys
 import zipfile
 from pathlib import Path
 
-COMMON = set("""README.md LICENSE third_party_notices.md docs/preview.webp codex_patch.py codex-host.js
-desktop-main.js desktop-ui.js features.py fixed-voice.json hashes.json layout.js lines.json
-miku-mark.svg pinned-recap.js port.py recap-tones.json recap.js retry-persona.txt speech-main.js
-speech-ui.js theme.css voice-main.js voice-preload.cjs""".split())
-MAC = COMMON | {"Install.command","Repair-Permissions.command","setup-sensevoice.sh"}
-WIN = COMMON | {"install_windows.py","windows-setup.ps1","Install-Windows.cmd","windows-setup.nsi"}
-SOURCE = MAC | WIN | {".github/workflows/release.yml",".github/workflows/withdraw-builds.yml",
-                        "packaging/build-mac.sh","packaging/mac-installer.swift","packaging/verify.py"}
+SHARED = set("""README.md
+docs/preview.webp""".split())
+MAC = SHARED | set("""Install.command
+LICENSE
+Repair-Permissions.command
+Update.command
+argon-notes.js
+argon-system.js
+codex-host.js
+codex_patch.py
+conversation.js
+desktop-main.js
+desktop-ui.js
+dsc-core-worker.js
+features.py
+fixed-voice.json
+hashes.json
+layout.js
+lines.json
+lite.py
+miku-bubble.txt
+miku-mark.svg
+miku-persona.txt
+miku-title.txt
+performance.py
+pinned-recap.js
+place-cache.js
+port.py
+recap-tones.json
+recap.js
+renderer_patch.py
+retry-persona.txt
+setup-sensevoice.sh
+speech-main.js
+speech-ui.js
+theme.css
+third_party_notices.md
+voice-main.js
+voice-preload.cjs
+worker-init.js""".split())
+WIN = SHARED | set("""Install-Windows.cmd
+LICENSE
+codex-host.js
+codex_patch.py
+conversation.js
+desktop-main.js
+desktop-ui.js
+dsc-core-worker.js
+features.py
+fixed-voice.json
+hashes.json
+install_windows.py
+layout.js
+lines.json
+lite.py
+miku-mark.svg
+performance.py
+pinned-recap.js
+place-cache.js
+port.py
+recap-tones.json
+recap.js
+renderer_patch.py
+retry-persona.txt
+speech-main.js
+speech-ui.js
+theme.css
+third_party_notices.md
+voice-main.js
+voice-preload.cjs
+windows-runtime.json
+windows-setup.nsi
+windows-setup.ps1
+worker-init.js""".split())
+SOURCE = WIN | {"macos/" + name for name in MAC - SHARED} | set(""".github/workflows/release.yml
+.github/workflows/withdraw-builds.yml
+.gitignore
+Install.command
+Repair-Permissions.command
+Update.command
+packaging/build-mac.sh
+packaging/mac-installer.swift
+packaging/verify.py
+setup-sensevoice.sh""".split())
 DENIED = set(json.loads(Path("hashes.json").read_text()).values())
 PREVIEW_HASH = "cb86d22aee74164837d93104058a486a6bb81da6280104d8b8ea3c9974ccc903"
 def audit(name, data):
@@ -26,17 +102,20 @@ def audit(name, data):
     if b'\0' in data:
         raise ValueError(f"Unexpected binary: {name}")
 
+def source_path(name, files):
+    return Path("macos", name) if files is MAC and name not in SHARED else Path(name)
+
 def package(name, files):
     target = Path("release")/name
     with zipfile.ZipFile(target,'w',zipfile.ZIP_DEFLATED) as out:
         for path in sorted(files):
-            audit(path,Path(path).read_bytes())
-            out.write(path,'HarnessMiku/'+path)
+            audit(path,source_path(path,files).read_bytes())
+            out.write(source_path(path,files),'HarnessMiku/'+path)
     with zipfile.ZipFile(target) as z:
         assert len(z.namelist()) == len(files)
         for path in files:
             content=z.read('HarnessMiku/'+path)
-            assert content==Path(path).read_bytes()
+            assert content==source_path(path,files).read_bytes()
             audit(path,content)
 
 def exact(folder, expected):
@@ -44,7 +123,7 @@ def exact(folder, expected):
     if actual != expected: raise ValueError(f"Unexpected inventory: {actual ^ expected}")
     for name in expected:
         data=(folder/name).read_bytes()
-        assert data==Path(name).read_bytes()
+        assert data==source_path(name,expected).read_bytes()
         audit(name,data)
 
 if __name__=='__main__':

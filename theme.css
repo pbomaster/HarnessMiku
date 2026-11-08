@@ -134,8 +134,12 @@ html:not(.miku-desktop) {
 }
 html:not(.miku-desktop) .wtg9ga_root {
   background:var(--miku-pane);
-  backdrop-filter:var(--miku-frost);
   box-shadow:inset -1px 0 #ffffffbd;
+}
+/* Windows positions caption buttons against the viewport. A filtered sidebar
+   would anchor them inside the panel, below the caption, and clip them. */
+html:not(.miku-desktop):not([data-windows-titlebar]) .wtg9ga_root {
+  backdrop-filter:var(--miku-frost);
 }
 html body .dsc-composer {
   background:var(--miku-pane)!important;
@@ -194,3 +198,30 @@ html:not(.miku-desktop) #miku-intro-veil {z-index:-4!important;pointer-events:no
 html:not(.miku-desktop) #dsc-stage {z-index:-3}
 html:not(.miku-desktop) #dsc-bubble {z-index:-2}
 html:not(.miku-desktop) #miku-pinned-recap {z-index:-1}
+
+.miku-size-control,.miku-theme-control,.miku-theme-control label {display:inline-flex;align-items:center;gap:6px}
+.miku-size-control input[type="range"] {width:90px;accent-color:var(--miku-tint,#388779)}
+.miku-size-control span {min-width:4ch;text-align:right;font-variant-numeric:tabular-nums}
+.miku-theme-control input[type="color"] {width:34px;height:24px;padding:1px;cursor:pointer}
+html[data-miku-tint] {
+  --miku-wash:color-mix(in srgb,var(--miku-tint) 11%,white);
+  --miku-light:color-mix(in srgb,var(--miku-tint) 4%,white);
+  --miku-dark:color-mix(in srgb,var(--miku-tint) 44%,#102322);
+  --miku-border:color-mix(in srgb,var(--miku-tint) 55%,#c1cdc8);
+}
+html[data-miku-tint]:not(.miku-desktop) {background:linear-gradient(140deg,var(--miku-wash),var(--miku-light))!important}
+html[data-miku-tint] body {
+  --miku-pane:linear-gradient(145deg,var(--miku-light),var(--miku-wash));
+  --miku-pop:linear-gradient(145deg,white,var(--miku-wash));
+  --dsw-alias-bg-layer-1:var(--miku-light)!important;
+  --dsw-alias-bg-layer-2:var(--miku-light)!important;
+  --dsw-alias-bg-layer-3:var(--miku-wash)!important;
+  --dsw-alias-interactive-bg-hover:var(--miku-wash)!important;
+  --dsw-specific-sidebar-nav-item-active-accent:var(--miku-wash)!important;
+}
+html[data-miku-tint]:not(.miku-desktop) body::before {background:radial-gradient(ellipse at 88% 86%,var(--miku-wash),transparent 55%)}
+html[data-miku-tint] body :is(.dsc-send,.dsc-newsession) {background:var(--miku-dark)!important;color:white!important}
+html[data-miku-tint] body :is(.dsc-composer,#dsc-bubble,#miku-pinned-recap,#miku-pet-toggle,#miku-pet-menu,.miku-prompt) {border-color:var(--miku-border)!important}
+html[data-miku-tint] body :is(.miku-wordmark,.miku-icon,.miku-balance,#dsc-bubble,#miku-pinned-recap,#miku-pet-menu,#miku-pet-toggle) {color:var(--miku-dark)}
+html[data-miku-tint] #miku-options :is(button,select) {background:var(--miku-light);color:var(--miku-dark);border-color:var(--miku-border)}
+html[data-miku-tint] #dsc-bubble::after {border-color:var(--miku-border)}

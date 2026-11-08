@@ -1,5 +1,8 @@
 @echo off
 setlocal
-cd /d "%~dp0"
-powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0windows-setup.ps1" %*
-if errorlevel 1 pause
+pushd "%~dp0" || exit /b 1
+powershell.exe -STA -NoLogo -NoProfile -ExecutionPolicy Bypass -File ".\windows-setup.ps1" %*
+set "setupResult=%ERRORLEVEL%"
+if not "%setupResult%"=="0" pause
+popd
+exit /b %setupResult%

@@ -1,7 +1,7 @@
 // All positions are CSS pixels, matching the pointer hit-test coordinates.
 function mikuHome(width, height, card, W, H, visW, visH, fleeX) {
   const percent=Number(document.documentElement.dataset.mikuSize);
-  const scale=[50,75,100,125,150].includes(percent)?percent/100:1;
+  const scale=(Number.isInteger(percent) && percent>=50 && percent<=150)?percent/100:1;
   if(typeof document!=="undefined" && document.documentElement.classList.contains("miku-desktop")){
     const bottom=height;
     const base=Math.min(.79,Math.max(.35,(bottom-115)/H));

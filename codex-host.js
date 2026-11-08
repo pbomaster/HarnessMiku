@@ -8,7 +8,7 @@ async mikuCodex(action, owner) {
     const status = async () => {
         const attempt = this.mikuCodexAttempt;
         if (attempt && attempt.owner === owner) return {phase:attempt.phase,code:attempt.code};
-        return {phase:(await credentials.describeRecord(key)).configured ? "connected" : "idle",code:""};
+        return {phase:(await credentials.describeRecord(key)).kind === "grant" ? "connected" : "idle",code:""};
     };
     if (action === "status") return status();
     const previous = this.mikuCodexAttempt;
@@ -23,7 +23,7 @@ async mikuCodex(action, owner) {
         const view = scope();
         if (!view) throw Error("Provider settings unavailable");
         const profile = view.value.providers?.[route];
-        if (profile && (profile.baseURL || profile.apiKeyEnv || Object.keys(profile.headers || {}).length))
+        if (profile && (profile.baseURL || profile.api || profile.apiKeyEnv || Object.keys(profile.modelOverrides || {}).length || Object.keys(profile.headers || {}).length))
             throw Error("Use the official openai-codex route without custom credentials or endpoints");
         return {view,profile};
     };
@@ -34,7 +34,7 @@ async mikuCodex(action, owner) {
     if (action !== "start") throw Error("Unknown sign-in action");
     checkProfile();
     if (previous?.phase === "waiting") return status();
-    if ((await credentials.describeRecord(key)).configured) {
+    if ((await credentials.describeRecord(key)).kind === "grant") {
         await enable();
         this.mikuCodexAttempt = undefined;
         return status();

@@ -4,6 +4,17 @@ function mikuSpokenRecap(blocks) {
     .map(b => b.text).join("").trim();
   const begin = "<!--miku-recap-->", end = "<!--/miku-recap-->";
   const suffix=text.match(/<!--miku-tone:([a-z]+)-->$/);
+  if (!suffix && document.documentElement.dataset.mikuLite==="true"){
+    if (!text || /<!--|```|<\/?(?:think|thinking|analysis|reasoning)\b/i.test(text))return "";
+    const paragraphs=text.split(/\n\s*\n/).map(p=>p.trim()).filter(Boolean);
+    let line=paragraphs.at(-1)?.replace(/\s+/g," ") || "";
+    if(line.length>180){
+      const sentences=line.match(/[^.!?。！？]+(?:[.!?。！？]+(?:[”’」])?|$)/gu) || [];
+      line=sentences.at(-1)?.trim() || "";
+    }
+    if(!line || line.length>400 || /https?:|[<>{}\[\]]/.test(line))return "";
+    return JSON.stringify({text:line,tone:/[!！]$/.test(line)?"emphasis":line.includes("…")?"whisper":"soft"});
+  }
   if (!suffix || !MIKU_TONE_NAMES.includes(suffix[1])) return "";
   text=text.slice(0,suffix.index).trimEnd();
   if (!text.endsWith(end)) return "";

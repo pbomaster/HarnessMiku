@@ -51,10 +51,35 @@
       if(event.key==="Escape" && !event.defaultPrevented && !petMenu.hidden){showPetMenu(false);petToggle.focus();}
     });
     const page=document.documentElement;
-    const sizeLabel=document.createElement("label"),sizeSelect=document.createElement("select");
+    const sizeLabel=document.createElement("label"),sizeSelect=document.createElement("input");
     sizeLabel.className="miku-size-control";
-    sizeLabel.append("미쿠 크기 ",sizeSelect);
-    for(const value of [50,75,100,125,150])sizeSelect.add(new Option(value+"%",String(value)));
+    sizeSelect.type="range";
+    sizeSelect.min="50";sizeSelect.max="150";sizeSelect.step="1";
+    const sizeText=document.createElement("span");
+    sizeLabel.append("미쿠 크기 ",sizeSelect,sizeText);
+
+    const themeRow=document.createElement("div");
+    themeRow.className="miku-theme-control";
+    const themeLabel=document.createElement("label"),color=document.createElement("input");
+    color.type="color";
+    themeLabel.append("테마 색상 ",color);
+    const resetColor=document.createElement("button");
+    resetColor.type="button";resetColor.textContent="기본색";
+    themeRow.append(themeLabel,resetColor);
+    const themeKey="miku.theme.color";
+    function showTheme(value){
+      const custom=/^#[a-f0-9]{6}$/i.test(value||"");
+      page.toggleAttribute("data-miku-tint",custom);
+      if(custom)page.style.setProperty("--miku-tint",value);
+      else page.style.removeProperty("--miku-tint");
+      color.value=custom?value:"#388779";
+    }
+    showTheme(localStorage.getItem(themeKey));
+    color.oninput=()=>{showTheme(color.value);localStorage.setItem(themeKey,color.value);};
+    resetColor.onclick=()=>{localStorage.removeItem(themeKey);showTheme(null);};
+    window.addEventListener("storage",event=>{
+      if(event.key===themeKey || event.key===null)showTheme(localStorage.getItem(themeKey));
+    });
     sizeSelect.setAttribute("aria-label","미쿠 크기");
     const frameLabel=document.createElement("label"),frameSelect=document.createElement("select");
     frameLabel.className="miku-size-control";
@@ -68,13 +93,15 @@
     };
     function sizeKey(){return page.classList.contains("miku-desktop")?"miku.size.pet":"miku.size.chat";}
     function applySize(value){
-      sizeSelect.value=value;
-      if(!sizeSelect.value)sizeSelect.value="100";
+      const n=Number(value);
+      sizeSelect.value=String(Number.isInteger(n) && n>=50 && n<=150 ? n : 100);
+      sizeText.textContent=sizeSelect.value+"%";
+      sizeSelect.setAttribute("aria-valuetext",sizeText.textContent);
       page.dataset.mikuSize=sizeSelect.value;
       page.dataset.mikuFrame=frameSelect.value;
       if(page.classList.contains("miku-desktop"))ipc.send("miku:pet-size",Number(sizeSelect.value),frameSelect.value);
     }
-    sizeSelect.onchange=()=>{
+    sizeSelect.oninput=()=>{
       localStorage.setItem(sizeKey(),sizeSelect.value);
       applySize(sizeSelect.value);
     };
@@ -82,7 +109,7 @@
     function setDesktop(on){
       page.classList.toggle("miku-desktop",on);
       showPetMenu(false);
-      (on?petMenu:options).append(sizeLabel,frameLabel);
+      (on?petMenu:options).append(sizeLabel,frameLabel,themeRow);
       frameSelect.value=localStorage.getItem(frameKey())==="full"?"full":"bust";
       applySize(localStorage.getItem(sizeKey())||"100");
 
@@ -123,6 +150,19 @@
     const options=document.createElement("div");
     options.id="miku-options";
     options.append(...Array.from(bar.children).filter(el=>el!==button && el!==petButton));
+    const liteLabel=document.createElement("label"),liteBox=document.createElement("input");
+    liteBox.type="checkbox";liteBox.disabled=true;
+    liteLabel.append(liteBox," Lite 모드 · 미쿠 대화와 웹 검색");
+    options.prepend(liteLabel);
+    ipc.invoke("miku:lite-mode").then(value=>{liteBox.checked=value;page.dataset.mikuLite=String(value);liteBox.disabled=false;})
+      .catch(()=>{status.textContent="Lite 설정을 읽지 못했어.";});
+    liteBox.onchange=async()=>{
+      const wanted=liteBox.checked;
+      liteBox.disabled=true;
+      try{liteBox.checked=await ipc.invoke("miku:lite-mode",wanted);page.dataset.mikuLite=String(liteBox.checked);status.textContent="새 대화에서 시작하면 이전 도구 기록 없이 대화할 수 있어.";}
+      catch{liteBox.checked=!wanted;status.textContent="Lite 설정을 저장하지 못했어.";}
+      finally{liteBox.disabled=false;}
+    };
     const toggle=document.createElement("button"),balance=document.createElement("button");
     toggle.type=balance.type="button";
     function icon(control,label,paths){
